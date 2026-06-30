@@ -1,0 +1,14 @@
+{
+  "id": "session-1782815023894",
+  "startedAt": "2026-06-30T10:23:43.894Z",
+  "cwd": "/Users/muhammadali/projects/habitly",
+  "context": {},
+  "metrics": {
+    "edits": 0,
+    "commands": 0,
+    "tasks": 0,
+    "errors": 0
+  },
+  "endedAt": "2026-06-30T10:23:44.514Z",
+  "duration": 620
+}
