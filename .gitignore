@@ -4,3 +4,9 @@ dev-dist
 *.local
 .DS_Store
 habitly-dist.zip
+
+# tooling / build artifacts
+.claude-flow/
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts
