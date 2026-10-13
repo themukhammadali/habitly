@@ -3,7 +3,8 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 // Served from https://<user>.github.io/habitly/ on GitHub Pages.
-const BASE = '/habitly/'
+// The Android (Capacitor) build serves from the webview root: `npm run build:android`.
+const BASE = process.env.BASE ?? '/habitly/'
 
 export default defineConfig({
   base: BASE,
