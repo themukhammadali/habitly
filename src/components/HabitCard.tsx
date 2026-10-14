@@ -1,76 +1,90 @@
 import type { Habit } from '../types'
 import { colorHex } from '../lib/palette'
-import { currentStreak } from '../lib/dates'
-import { todayKey } from '../lib/dates'
+import { HabitIcon } from '../lib/icons'
+import { currentStreak, doneInWeek, isDue, scheduleLabel, streakUnit } from '../lib/schedule'
+import { tapFeedback } from '../lib/haptics'
 import YearGrid from './YearGrid'
 import { useStore } from '../store'
 
 export default function HabitCard({
   habit,
+  day,
   onOpen,
+  dragHandle,
 }: {
   habit: Habit
+  /** The day the check button acts on (today, or yesterday when catching up). */
+  day: string
   onOpen: () => void
+  /** Shown instead of the check button while reordering. */
+  dragHandle?: React.ReactNode
 }) {
   const toggleDay = useStore((s) => s.toggleDay)
   const hex = colorHex(habit.color)
-  const today = todayKey()
-  const doneToday = !!habit.completions[today]
-  const streak = currentStreak(habit.completions)
+  const done = !!habit.completions[day]
+  const due = isDue(habit.schedule, day)
+  const streak = currentStreak(habit)
+  const unit = streakUnit(habit.schedule)
+
+  const subtitle =
+    habit.schedule.kind === 'weekly'
+      ? `${Math.min(doneInWeek(habit.completions, day), habit.schedule.times)}/${habit.schedule.times} this week`
+      : !due
+        ? 'Not scheduled'
+        : habit.description || (habit.schedule.kind === 'daily' ? '' : scheduleLabel(habit.schedule))
 
   return (
     <div
-      className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5 dark:bg-neutral-900 dark:ring-white/5"
-      onClick={onOpen}
-      role="button"
+      className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5 transition active:scale-[0.99] dark:bg-neutral-900 dark:ring-white/5"
+      onClick={dragHandle ? undefined : onOpen}
+      role={dragHandle ? undefined : 'button'}
     >
-      <div className="flex items-start gap-3">
-        <div
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-lg"
-          style={{ background: `${hex}22` }}
-        >
-          {habit.icon}
+      <div className="flex items-center gap-3">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" style={{ background: `${hex}22` }}>
+          <HabitIcon name={habit.icon} className="h-5 w-5" style={{ color: hex }} />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="truncate font-semibold text-neutral-900 dark:text-neutral-50">
-            {habit.name}
+          <div className="truncate font-semibold text-neutral-900 dark:text-neutral-50">{habit.name}</div>
+          {subtitle && <div className="truncate text-sm text-neutral-400">{subtitle}</div>}
+        </div>
+        {dragHandle ?? (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              tapFeedback()
+              toggleDay(habit.id, day)
+            }}
+            aria-label={done ? `Mark ${habit.name} not done` : `Mark ${habit.name} done`}
+            aria-pressed={done}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition active:scale-90"
+            style={{
+              background: done ? hex : 'transparent',
+              border: done ? 'none' : `2px solid ${hex}`,
+              opacity: !done && !due ? 0.35 : 1,
+            }}
+          >
+            {done ? (
+              <CheckIcon key="done" className="h-5 w-5 animate-check-in text-white" />
+            ) : (
+              <PlusIcon className="h-5 w-5" style={{ color: hex }} />
+            )}
+          </button>
+        )}
+      </div>
+
+      {!dragHandle && (
+        <>
+          <div className="mt-3">
+            <YearGrid completions={habit.completions} color={hex} createdAt={habit.createdAt} weeks={20} />
           </div>
-          {habit.description && (
-            <div className="truncate text-sm text-neutral-400">
-              {habit.description}
+          {streak > 0 && (
+            <div className="mt-2 flex items-center gap-1 text-xs font-medium text-neutral-400">
+              <FlameIcon className="h-3.5 w-3.5" style={{ color: hex }} />
+              {streak} {unit}{streak === 1 ? '' : 's'} streak
             </div>
           )}
-        </div>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation()
-            toggleDay(habit.id, today)
-          }}
-          aria-label={doneToday ? 'Mark today incomplete' : 'Mark today complete'}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition active:scale-90"
-          style={{
-            background: doneToday ? hex : 'transparent',
-            border: doneToday ? 'none' : `2px solid ${hex}`,
-          }}
-        >
-          {doneToday ? (
-            <CheckIcon className="h-5 w-5 text-white" />
-          ) : (
-            <PlusIcon className="h-5 w-5" style={{ color: hex }} />
-          )}
-        </button>
-      </div>
-
-      <div className="mt-3">
-        <YearGrid completions={habit.completions} color={hex} createdAt={habit.createdAt} weeks={20} />
-      </div>
-
-      {streak > 0 && (
-        <div className="mt-2 flex items-center gap-1 text-xs font-medium text-neutral-400">
-          <FlameIcon className="h-3.5 w-3.5" style={{ color: hex }} />
-          {streak} day streak
-        </div>
+        </>
       )}
     </div>
   )

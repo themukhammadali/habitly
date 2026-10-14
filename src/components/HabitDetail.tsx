@@ -1,12 +1,13 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import type { Habit } from '../types'
 import { colorHex } from '../lib/palette'
-import {
-  bestStreak,
-  completedCount,
-  completionRate,
-  currentStreak,
-} from '../lib/dates'
+import { HabitIcon } from '../lib/icons'
+import { formatTime } from '../lib/dates'
+import { bestStreak, completionRate, currentStreak, scheduleLabel, streakUnit } from '../lib/schedule'
+import { predict } from '../lib/predict'
+import { reminderTime } from '../lib/reminders'
+import { todayKey } from '../lib/dates'
+import { useBackHandler } from '../hooks/useBackHandler'
 import { useStore } from '../store'
 import YearGrid from './YearGrid'
 import CalendarMonth from './CalendarMonth'
@@ -24,10 +25,18 @@ export default function HabitDetail({
   const [editing, setEditing] = useState(false)
   const hex = colorHex(habit.color)
 
-  const streak = currentStreak(habit.completions)
-  const best = bestStreak(habit.completions)
-  const rate = completionRate(habit.completions, habit.createdAt)
-  const total = completedCount(habit.completions)
+  useBackHandler(onClose)
+  // Open the year grid scrolled to the most recent weeks.
+  const scrollToEnd = useCallback((el: HTMLDivElement | null) => {
+    if (el) el.scrollLeft = el.scrollWidth
+  }, [])
+
+  const streak = currentStreak(habit)
+  const best = bestStreak(habit)
+  const rate = completionRate(habit)
+  const total = Object.keys(habit.completions).length
+  const unit = streakUnit(habit.schedule) === 'week' ? 'Weeks' : 'Days'
+  const learned = predict(habit.completionTimes, todayKey())
 
   return (
     <div className="fixed inset-0 z-40 animate-fade-in overflow-y-auto bg-neutral-100 dark:bg-neutral-950 no-scrollbar">
@@ -58,25 +67,25 @@ export default function HabitDetail({
         {/* Title */}
         <div className="flex items-center gap-3">
           <div
-            className="flex h-12 w-12 items-center justify-center rounded-2xl text-2xl"
+            className="flex h-12 w-12 items-center justify-center rounded-2xl"
             style={{ background: `${hex}22` }}
           >
-            {habit.icon}
+            <HabitIcon name={habit.icon} className="h-6 w-6" style={{ color: hex }} />
           </div>
           <div className="min-w-0">
             <h1 className="truncate text-xl font-bold text-neutral-900 dark:text-neutral-50">
               {habit.name}
             </h1>
-            {habit.description && (
-              <p className="truncate text-sm text-neutral-400">{habit.description}</p>
-            )}
+            <p className="truncate text-sm text-neutral-400">
+              {[scheduleLabel(habit.schedule), habit.description].filter(Boolean).join(' · ')}
+            </p>
           </div>
         </div>
 
         {/* Last 365 days heatmap */}
         <Card>
           <SectionLabel>Last 365 days</SectionLabel>
-          <div className="overflow-x-auto no-scrollbar">
+          <div className="overflow-x-auto no-scrollbar" ref={scrollToEnd}>
             <div style={{ minWidth: 620 }}>
               <YearGrid
                 completions={habit.completions}
@@ -92,11 +101,35 @@ export default function HabitDetail({
 
         {/* Highlights */}
         <div className="grid grid-cols-2 gap-3">
-          <Stat value={streak} label="Current Streak" color={hex} />
-          <Stat value={best} label="Best Streak" color={hex} />
+          <Stat value={streak} label={`Current Streak (${unit})`} color={hex} />
+          <Stat value={best} label={`Best Streak (${unit})`} color={hex} />
           <Stat value={`${rate}%`} label="Completion" color={hex} />
           <Stat value={total} label="Total Days" color={hex} />
         </div>
+
+        {/* What the smart reminder has learned */}
+        {(learned || habit.reminder.mode !== 'off') && (
+          <Card>
+            <SectionLabel>Timing</SectionLabel>
+            <div className="space-y-1 text-sm text-neutral-600 dark:text-neutral-300">
+              {learned ? (
+                <p>
+                  Usually done around <b style={{ color: hex }}>{formatTime(learned.usual)}</b>
+                  {learned.spread >= 5 && <> (± {learned.spread} min)</>}
+                  {learned.split && <>, learned separately for weekdays and weekends</>}.
+                </p>
+              ) : (
+                <p>Tick this habit off on the day you do it and Habitly will learn your usual time.</p>
+              )}
+              {habit.reminder.mode !== 'off' && (
+                <p className="text-neutral-400">
+                  Reminder today at {formatTime(reminderTime(habit).minutes)}
+                  {habit.reminder.mode === 'smart' && !learned && ' until your usual time is learned'}.
+                </p>
+              )}
+            </div>
+          </Card>
+        )}
 
         {/* Calendar */}
         <Card>
@@ -120,9 +153,9 @@ export default function HabitDetail({
           habit={habit}
           onClose={() => {
             setEditing(false)
-            // If the habit was deleted, close the detail too.
-            const stillExists = useStore.getState().habits.some((h) => h.id === habit.id)
-            if (!stillExists) onClose()
+            // If the habit was deleted or archived, close the detail too.
+            const current = useStore.getState().habits.find((h) => h.id === habit.id)
+            if (!current || current.archived) onClose()
           }}
         />
       )}

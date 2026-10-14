@@ -2,6 +2,12 @@ import { useRef, useState } from 'react'
 import type { ThemePref } from '../types'
 import { useStore } from '../store'
 import { exportBackup, parseBackup } from '../lib/backup'
+import { Capacitor } from '@capacitor/core'
+import { HabitIcon } from '../lib/icons'
+import { colorHex } from '../lib/palette'
+import { useToast } from './Toast'
+
+const REPO = 'https://github.com/themukhammadali/habitly'
 
 const OPTIONS: { key: ThemePref; label: string }[] = [
   { key: 'light', label: 'Light' },
@@ -15,6 +21,11 @@ export default function Settings() {
   const habits = useStore((s) => s.habits)
   const settings = useStore((s) => s.settings)
   const replaceAll = useStore((s) => s.replaceAll)
+  const setArchived = useStore((s) => s.setArchived)
+  const deleteHabit = useStore((s) => s.deleteHabit)
+  const restoreHabit = useStore((s) => s.restoreHabit)
+  const showToast = useToast((s) => s.show)
+  const archived = habits.filter((h) => h.archived)
   const fileInput = useRef<HTMLInputElement>(null)
   const [message, setMessage] = useState<string | null>(null)
 
@@ -110,22 +121,96 @@ export default function Settings() {
         {message && <p className="mt-2 px-1 text-xs text-neutral-500">{message}</p>}
       </div>
 
+      {archived.length > 0 && (
+        <div>
+          <SectionLabel>Archived</SectionLabel>
+          <div className="divide-y divide-black/5 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/5 dark:divide-white/5 dark:bg-neutral-900 dark:ring-white/5">
+            {archived.map((h) => (
+              <div key={h.id} className="flex items-center gap-3 px-4 py-3">
+                <HabitIcon name={h.icon} className="h-5 w-5 shrink-0" style={{ color: colorHex(h.color) }} />
+                <span className="min-w-0 flex-1 truncate text-sm font-medium text-neutral-900 dark:text-neutral-50">
+                  {h.name}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setArchived(h.id, false)}
+                  className="text-sm font-medium text-emerald-600 dark:text-emerald-400"
+                >
+                  Restore
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    deleteHabit(h.id)
+                    showToast(`Deleted “${h.name}”`, { label: 'Undo', run: () => restoreHabit(h) })
+                  }}
+                  className="text-sm font-medium text-red-500"
+                >
+                  Delete
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div>
         <SectionLabel>About</SectionLabel>
         <div className="rounded-2xl bg-white p-4 text-sm text-neutral-500 shadow-sm ring-1 ring-black/5 dark:bg-neutral-900 dark:ring-white/5">
-          <p className="font-semibold text-neutral-900 dark:text-neutral-50">Habitly</p>
+          <div className="flex items-baseline justify-between">
+            <p className="font-semibold text-neutral-900 dark:text-neutral-50">Habitly</p>
+            <p className="text-xs text-neutral-400">Version {__APP_VERSION__}</p>
+          </div>
           <p className="mt-1">
             A minimalist habit tracker. All your data lives privately on this
             device — nothing is uploaded.
           </p>
+          <InstallTip />
           <p className="mt-3 text-xs text-neutral-400">
-            Tip: tap the Share button in Safari, then “Add to Home Screen” to
-            install Habitly as an app.
+            Open source under the MIT license ·{' '}
+            <a href={REPO} target="_blank" rel="noreferrer" className="underline">
+              GitHub
+            </a>
           </p>
         </div>
       </div>
     </div>
   )
+}
+
+/** How to install or update Habitly, depending on where it's running. */
+function InstallTip() {
+  const ua = navigator.userAgent
+  const standalone = window.matchMedia('(display-mode: standalone)').matches
+  let tip: React.ReactNode = null
+  if (Capacitor.isNativePlatform()) {
+    tip = (
+      <>
+        New versions are published on{' '}
+        <a href={`${REPO}/releases/latest`} target="_blank" rel="noreferrer" className="underline">
+          GitHub Releases
+        </a>
+        . Install the new APK over this one; your habits are kept.
+      </>
+    )
+  } else if (standalone) {
+    tip = null
+  } else if (/iPhone|iPad|iPod/.test(ua)) {
+    tip = 'Tip: tap the Share button in Safari, then “Add to Home Screen” to install Habitly as an app.'
+  } else if (/Android/.test(ua)) {
+    tip = (
+      <>
+        Tip: get the Android app with reminders from{' '}
+        <a href={`${REPO}/releases/latest`} target="_blank" rel="noreferrer" className="underline">
+          GitHub Releases
+        </a>
+        , or use “Add to Home screen” in your browser menu.
+      </>
+    )
+  } else {
+    tip = 'Tip: use the install icon in your browser’s address bar to install Habitly as an app.'
+  }
+  return tip ? <p className="mt-3 text-xs text-neutral-400">{tip}</p> : null
 }
 
 function SectionLabel({ children }: { children: React.ReactNode }) {

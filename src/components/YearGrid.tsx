@@ -13,6 +13,7 @@ interface Props {
 interface Cell {
   key: string
   inRange: boolean // between createdAt and today
+  future: boolean
   done: boolean
 }
 
@@ -47,7 +48,7 @@ export default function YearGrid({
         const key = toKey(date)
         const inRange =
           key <= tKey && (!createdAt || key >= createdAt)
-        col.push({ key, inRange, done: !!completions[key] })
+        col.push({ key, inRange, future: key > tKey, done: !!completions[key] })
       }
       const colIndex = weeks - 1 - w
       const m = weekStart.getMonth()
@@ -117,11 +118,13 @@ function Dot({
   color: string
   onToggle?: (key: string) => void
 }) {
-  const bg = !cell.inRange
+  const bg = cell.future
     ? 'transparent'
     : cell.done
       ? color
-      : 'rgba(120,120,128,0.16)'
+      : !cell.inRange
+        ? 'rgba(120,120,128,0.07)' // before the habit existed
+        : 'rgba(120,120,128,0.16)'
 
   return (
     <button

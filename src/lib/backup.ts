@@ -3,10 +3,11 @@ import { Directory, Encoding, Filesystem } from '@capacitor/filesystem'
 import { Share } from '@capacitor/share'
 import type { Habit, Settings } from '../types'
 import { todayKey } from './dates'
-import { PALETTE } from './palette'
+import { normalizeHabit } from './migrate'
 
 const FORMAT = 'habitly-backup'
-const VERSION = 1
+// v2 (app 1.1): icon keys instead of emoji, schedules, reminders, completion times.
+const VERSION = 2
 
 export interface Backup {
   habits: Habit[]
@@ -57,27 +58,7 @@ export function parseBackup(text: string): Backup {
     throw new Error('This backup was made by a newer version of Habitly.')
   }
 
-  const habits = obj.habits.map((h, i): Habit => {
-    const x = h as Partial<Habit>
-    if (typeof x.id !== 'string' || typeof x.name !== 'string') {
-      throw new Error('This backup is damaged and cannot be imported.')
-    }
-    const completions: Record<string, true> = {}
-    for (const [day, done] of Object.entries(x.completions ?? {})) {
-      if (done === true && /^\d{4}-\d{2}-\d{2}$/.test(day)) completions[day] = true
-    }
-    return {
-      id: x.id,
-      name: x.name,
-      description: typeof x.description === 'string' ? x.description : '',
-      icon: typeof x.icon === 'string' ? x.icon : '✅',
-      color: typeof x.color === 'string' ? x.color : PALETTE[0].key,
-      createdAt: typeof x.createdAt === 'string' ? x.createdAt : todayKey(),
-      completions,
-      archived: x.archived === true ? true : undefined,
-      order: typeof x.order === 'number' ? x.order : i,
-    }
-  })
+  const habits = obj.habits.map(normalizeHabit)
 
   const s = obj.settings as Partial<Settings> | undefined
   const theme = s?.theme === 'light' || s?.theme === 'dark' ? s.theme : 'system'

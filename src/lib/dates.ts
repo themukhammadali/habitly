@@ -35,62 +35,16 @@ export function lastNDays(count: number, end = new Date()): string[] {
   return out
 }
 
-/** Current streak: consecutive completed days ending today (or yesterday). */
-export function currentStreak(completions: Record<string, true>): number {
-  let streak = 0
-  let cursor = todayKey()
-  // If today isn't done yet, the streak can still be "alive" from yesterday.
-  if (!completions[cursor]) {
-    cursor = addDaysKey(cursor, -1)
-    if (!completions[cursor]) return 0
-  }
-  while (completions[cursor]) {
-    streak++
-    cursor = addDaysKey(cursor, -1)
-  }
-  return streak
+export function minutesOfDay(d = new Date()): number {
+  return d.getHours() * 60 + d.getMinutes()
 }
 
-/** Longest run of consecutive completed days, ever. */
-export function bestStreak(completions: Record<string, true>): number {
-  const keys = Object.keys(completions).sort()
-  if (keys.length === 0) return 0
-  let best = 1
-  let run = 1
-  for (let i = 1; i < keys.length; i++) {
-    if (addDaysKey(keys[i - 1], 1) === keys[i]) {
-      run++
-    } else {
-      run = 1
-    }
-    if (run > best) best = run
-  }
-  return best
-}
-
-export function completedCount(completions: Record<string, true>): number {
-  return Object.keys(completions).length
-}
-
-/** Completion rate over the window since createdAt (capped at 365 days). */
-export function completionRate(
-  completions: Record<string, true>,
-  createdAt: string,
-): number {
-  const start = fromKey(createdAt)
-  const today = new Date()
-  const msPerDay = 86400000
-  const totalDays = Math.min(
-    365,
-    Math.floor((today.getTime() - start.getTime()) / msPerDay) + 1,
-  )
-  if (totalDays <= 0) return 0
-  const windowStart = toKey(addDays(today, -(totalDays - 1)))
-  let done = 0
-  for (const k of Object.keys(completions)) {
-    if (k >= windowStart) done++
-  }
-  return Math.round((done / totalDays) * 100)
+export function formatTime(minutes: number): string {
+  const m = ((Math.round(minutes) % 1440) + 1440) % 1440
+  return new Date(2000, 0, 1, Math.floor(m / 60), m % 60).toLocaleTimeString([], {
+    hour: 'numeric',
+    minute: '2-digit',
+  })
 }
 
 export const WEEKDAYS_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']

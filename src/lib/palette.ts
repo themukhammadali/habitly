@@ -21,10 +21,3 @@ export const PALETTE: PaletteColor[] = [
 export function colorHex(key: string): string {
   return PALETTE.find((c) => c.key === key)?.hex ?? PALETTE[0].hex
 }
-
-// Suggested emoji icons for the picker.
-export const ICONS = [
-  '💧', '🏃', '🏋️', '🚭', '📚', '🧘', '🥗', '💊', '😴', '🦷',
-  '🧹', '💰', '✍️', '🎸', '🌱', '☀️', '🚶', '🚴', '🧠', '❤️',
-  '📵', '🍎', '🛏️', '🧴', '🎯', '⏰', '🙏', '🎨', '🐶', '☕',
-]
