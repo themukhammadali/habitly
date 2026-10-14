@@ -6,6 +6,8 @@ import { Capacitor } from '@capacitor/core'
 import { HabitIcon } from '../lib/icons'
 import { colorHex } from '../lib/palette'
 import { useToast } from './Toast'
+import ReminderSettings from './ReminderSettings'
+import { remindersSupported } from '../lib/notify'
 
 const REPO = 'https://github.com/themukhammadali/habitly'
 
@@ -80,6 +82,13 @@ export default function Settings() {
           ))}
         </div>
       </div>
+
+      {remindersSupported() && (
+        <div>
+          <SectionLabel>Reminders</SectionLabel>
+          <ReminderSettings />
+        </div>
+      )}
 
       <div>
         <SectionLabel>Overview</SectionLabel>

@@ -21,6 +21,19 @@ export async function ensurePermission(): Promise<boolean> {
   return display === 'granted'
 }
 
+/** Whether Android lets reminders fire at the exact minute ("Alarms & reminders"). */
+export async function exactAlarmsAllowed(): Promise<boolean> {
+  if (!remindersSupported()) return true
+  const { exact_alarm } = await LocalNotifications.checkExactNotificationSetting()
+  return exact_alarm === 'granted'
+}
+
+/** Opens the Android setting for exact alarms. */
+export async function openExactAlarmSetting(): Promise<boolean> {
+  const { exact_alarm } = await LocalNotifications.changeExactNotificationSetting()
+  return exact_alarm === 'granted'
+}
+
 let syncing: Promise<void> = Promise.resolve()
 
 /** Replaces all scheduled reminders with a fresh plan. Calls are serialized. */
