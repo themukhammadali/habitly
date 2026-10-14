@@ -12,6 +12,7 @@ interface State {
   toggleDay: (id: string, dayKey: string) => void
   reorder: (ids: string[]) => void
   setTheme: (theme: Settings['theme']) => void
+  replaceAll: (habits: Habit[], settings: Settings) => void
 }
 
 function uid(): string {
@@ -66,6 +67,8 @@ export const useStore = create<State>()(
 
       setTheme: (theme) =>
         set((s) => ({ settings: { ...s.settings, theme } })),
+
+      replaceAll: (habits, settings) => set({ habits, settings }),
     }),
     { name: 'habitly-v1' },
   ),

@@ -1,5 +1,7 @@
+import { useRef, useState } from 'react'
 import type { ThemePref } from '../types'
 import { useStore } from '../store'
+import { exportBackup, parseBackup } from '../lib/backup'
 
 const OPTIONS: { key: ThemePref; label: string }[] = [
   { key: 'light', label: 'Light' },
@@ -11,6 +13,35 @@ export default function Settings() {
   const theme = useStore((s) => s.settings.theme)
   const setTheme = useStore((s) => s.setTheme)
   const habits = useStore((s) => s.habits)
+  const settings = useStore((s) => s.settings)
+  const replaceAll = useStore((s) => s.replaceAll)
+  const fileInput = useRef<HTMLInputElement>(null)
+  const [message, setMessage] = useState<string | null>(null)
+
+  async function handleExport() {
+    setMessage(null)
+    try {
+      await exportBackup({ habits, settings })
+    } catch (e) {
+      // Closing the share sheet without picking an app rejects; not an error.
+      if (!/cancel/i.test(String(e))) setMessage('Export failed. Please try again.')
+    }
+  }
+
+  async function handleImport(file: File) {
+    setMessage(null)
+    try {
+      const backup = parseBackup(await file.text())
+      const ok = window.confirm(
+        `Import ${backup.habits.length} habit(s)? This replaces all habits currently on this device.`,
+      )
+      if (!ok) return
+      replaceAll(backup.habits, backup.settings)
+      setMessage(`Imported ${backup.habits.length} habit(s).`)
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : 'Import failed.')
+    }
+  }
 
   const totalCompletions = habits.reduce(
     (sum, h) => sum + Object.keys(h.completions).length,
@@ -45,6 +76,38 @@ export default function Settings() {
           <Box value={habits.length} label="Habits" />
           <Box value={totalCompletions} label="Days Completed" />
         </div>
+      </div>
+
+      <div>
+        <SectionLabel>Data</SectionLabel>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={handleExport}
+            className="flex-1 rounded-2xl bg-white py-3 text-sm font-medium text-neutral-900 shadow-sm ring-1 ring-black/5 dark:bg-neutral-900 dark:text-neutral-50 dark:ring-white/5"
+          >
+            Export backup
+          </button>
+          <button
+            type="button"
+            onClick={() => fileInput.current?.click()}
+            className="flex-1 rounded-2xl bg-white py-3 text-sm font-medium text-neutral-900 shadow-sm ring-1 ring-black/5 dark:bg-neutral-900 dark:text-neutral-50 dark:ring-white/5"
+          >
+            Import backup
+          </button>
+        </div>
+        <input
+          ref={fileInput}
+          type="file"
+          accept="application/json,.json"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            e.target.value = ''
+            if (file) handleImport(file)
+          }}
+        />
+        {message && <p className="mt-2 px-1 text-xs text-neutral-500">{message}</p>}
       </div>
 
       <div>
