@@ -3,6 +3,7 @@
 A minimalist daily habit tracker. Build streaks and see your progress at a glance.
 
 **Try it in the browser:** https://themukhammadali.github.io/habitly/
+**Android:** download the latest APK from [Releases](https://github.com/themukhammadali/habitly/releases/latest)
 
 ## Features
 
@@ -42,6 +43,14 @@ npm run apk
 ```
 
 The debug APK is written to `android/app/build/outputs/apk/debug/app-debug.apk`.
+
+### Publishing a release
+
+Push a version tag. GitHub Actions builds a signed APK and attaches it to a new release:
+
+```bash
+git tag v1.0.0 && git push origin v1.0.0
+```
 
 ## Contributing
 
