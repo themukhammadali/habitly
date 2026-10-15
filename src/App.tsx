@@ -34,7 +34,7 @@ import Settings from './components/Settings'
 import Analytics from './components/Analytics'
 import Toast, { useToast } from './components/Toast'
 import SwipeToDelete from './components/SwipeToDelete'
-import Confetti from './components/Confetti'
+import Confetti, { CONFETTI_MS } from './components/Confetti'
 
 type Tab = 'habits' | 'analytics' | 'settings'
 
@@ -358,7 +358,7 @@ function useCelebration(habits: Habit[], today: string) {
     if (allDone && !prev.current) {
       successFeedback()
       setCelebrating(true)
-      const t = setTimeout(() => setCelebrating(false), 1400)
+      const t = setTimeout(() => setCelebrating(false), CONFETTI_MS)
       prev.current = allDone
       return () => clearTimeout(t)
     }
