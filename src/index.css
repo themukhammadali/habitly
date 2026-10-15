@@ -222,33 +222,8 @@ body {
   animation: slide-out 0.22s cubic-bezier(0.32, 0, 0.67, 0) forwards;
 }
 
-/* Opening animation and first-run intro. */
-@keyframes launch-logo {
-  0% {
-    opacity: 0;
-    transform: scale(0.6);
-  }
-  60% {
-    opacity: 1;
-    transform: scale(1.06);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-.animate-launch-logo {
-  animation: launch-logo 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-}
+/* Entrance and first-run intro. */
 
-@keyframes launch-out {
-  to {
-    opacity: 0;
-    transform: scale(1.04);
-  }
-}
-.animate-launch-out {
-  animation: launch-out 0.28s ease-in forwards;
-}
 
 @keyframes rise {
   from {

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Capacitor } from '@capacitor/core'
 import { App as CapApp } from '@capacitor/app'
 import { StatusBar, Style } from '@capacitor/status-bar'
@@ -35,7 +35,6 @@ import Analytics from './components/Analytics'
 import Toast, { useToast } from './components/Toast'
 import SwipeToDelete from './components/SwipeToDelete'
 import Confetti, { CONFETTI_MS } from './components/Confetti'
-import LaunchAnimation from './components/LaunchAnimation'
 import Onboarding from './components/Onboarding'
 
 type Tab = 'habits' | 'analytics' | 'settings'
@@ -55,13 +54,11 @@ export default function App() {
   const [adding, setAdding] = useState(false)
   const onboarded = useStore((s) => s.settings.onboarded)
   const setOnboarded = useStore((s) => s.setOnboarded)
-  // Opening animation, then the screen underneath rises in (cards one by one).
-  const [launching, setLaunching] = useState(true)
-  const [revealing, setRevealing] = useState(false)
-  const finishLaunch = useCallback(() => {
-    setLaunching(false)
-    setRevealing(true)
-    setTimeout(() => setRevealing(false), 1200)
+  // Entrance after Android's launch screen: the screen rises in, cards one by one.
+  const [revealing, setRevealing] = useState(true)
+  useEffect(() => {
+    const t = setTimeout(() => setRevealing(false), 1200)
+    return () => clearTimeout(t)
   }, [])
   const [detailId, setDetailId] = useState<string | null>(null)
   const [sorting, setSorting] = useState(false)
@@ -189,7 +186,7 @@ export default function App() {
       </nav>
 
       {adding && <HabitEditor onClose={() => setAdding(false)} />}
-      {!launching && !onboarded && (
+      {!onboarded && (
         <Onboarding
           onDone={(addHabit) => {
             setOnboarded(true)
@@ -197,7 +194,6 @@ export default function App() {
           }}
         />
       )}
-      {launching && <LaunchAnimation onDone={finishLaunch} />}
       {detailHabit && <HabitDetail habit={detailHabit} onClose={() => setDetailId(null)} />}
       {celebrating && <Confetti />}
       <Toast />
