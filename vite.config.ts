@@ -15,6 +15,9 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      // Registered from main.tsx, and only on the web: the Android app bundles its
+      // files, and a service worker there would serve the previous version after updates.
+      injectRegister: null,
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
         name: 'Habitly — Habit Tracker',
