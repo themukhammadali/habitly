@@ -20,8 +20,8 @@ interface WidgetPlugin {
 const Widget = registerPlugin<WidgetPlugin>('HabitlyWidget')
 const native = () => Capacitor.getPlatform() === 'android'
 
-/** Days of history sent for the widget's heatmap (26 weeks, more than a 3×2 widget can show). */
-export const WIDGET_HISTORY_DAYS = 182
+/** Days of history sent for the widget's heatmap (35 weeks, more than a 4×2 widget can show). */
+export const WIDGET_HISTORY_DAYS = 245
 
 /** What the widget needs to draw today, and to roll over to tomorrow without the app. */
 export interface WidgetSnapshot {

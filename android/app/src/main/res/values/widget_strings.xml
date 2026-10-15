@@ -4,6 +4,8 @@
     <string name="widget_description">One habit with its heatmap. Tap the button to check it off.</string>
     <string name="widget_choose_habit">Tap to choose a habit</string>
     <string name="widget_habit_missing">This habit was deleted or archived. Tap to choose another.</string>
+    <string name="widget_preview_name">Read</string>
+    <string name="widget_preview_streak">12 days streak</string>
     <string name="widget_switch">Show the next habit</string>
     <string name="widget_config_title">Show which habit?</string>
     <string name="widget_config_empty">Open Habitly and add a habit first.</string>

@@ -19,7 +19,7 @@ import java.text.DecimalFormat;
 import java.util.Calendar;
 
 /**
- * A 3×2 home screen widget showing one habit like its card in the app: icon,
+ * A 4×2 home screen widget showing one habit like its card in the app: icon,
  * name, progress, the check / + button, and the dot heatmap.
  */
 public class HabitlyWidgetProvider extends AppWidgetProvider {
@@ -173,7 +173,7 @@ public class HabitlyWidgetProvider extends AppWidgetProvider {
         Bundle o = manager.getAppWidgetOptions(widgetId);
         int wDp = o.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0);
         int hDp = o.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, 0);
-        if (wDp <= 0) wDp = 250;
+        if (wDp <= 0) wDp = 300;
         if (hDp <= 0) hDp = 120;
         DisplayMetrics m = ctx.getResources().getDisplayMetrics();
         int padding = (8 + 14) * 2; // margin plus the card's padding

@@ -67,7 +67,7 @@ describe('buildSnapshot', () => {
       ],
       TODAY,
     ).habits
-    expect(h.history).toHaveLength(182)
+    expect(h.history).toHaveLength(245)
     expect(h.history.slice(-4)).toEqual([-1, 1, 0.25, 0])
   })
 })
