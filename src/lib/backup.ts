@@ -1,7 +1,9 @@
 import { Capacitor } from '@capacitor/core'
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem'
 import { Share } from '@capacitor/share'
-import type { Habit, Settings } from '../types'
+import type { Habit, Palette, Settings } from '../types'
+
+const PALETTES: Palette[] = ['neutral', 'sage', 'sky', 'lavender']
 import { todayKey } from './dates'
 import { normalizeHabit } from './migrate'
 
@@ -63,5 +65,6 @@ export function parseBackup(text: string): Backup {
 
   const s = obj.settings as Partial<Settings> | undefined
   const theme = s?.theme === 'light' || s?.theme === 'dark' ? s.theme : 'system'
-  return { habits, settings: { theme } }
+  const palette = PALETTES.includes(s?.palette as Palette) ? (s!.palette as Palette) : 'neutral'
+  return { habits, settings: { theme, palette } }
 }

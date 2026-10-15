@@ -29,7 +29,7 @@ export default function Toast() {
       <div
         key={toast.id}
         role="status"
-        className="pointer-events-auto flex w-full animate-toast-in items-center gap-3 rounded-2xl bg-neutral-900 px-4 py-3 text-sm text-white shadow-lg dark:bg-neutral-100 dark:text-neutral-900"
+        className="pointer-events-auto flex w-full animate-toast-in items-center gap-3 rounded-3xl bg-neutral-900 px-4 py-3 text-sm text-white shadow-lg dark:bg-neutral-100 dark:text-neutral-900"
       >
         <span className="flex-1">{toast.message}</span>
         {toast.action && (
@@ -39,7 +39,7 @@ export default function Toast() {
               toast.action!.run()
               hide()
             }}
-            className="font-semibold text-emerald-400 dark:text-emerald-600"
+            className="rounded-full px-2 font-semibold text-primary-container"
           >
             {toast.action.label}
           </button>

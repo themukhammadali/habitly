@@ -72,7 +72,7 @@ export default function Analytics() {
             return (
               <div key={w.start} className="flex h-full flex-1 flex-col justify-end" title={`${w.rate ?? '—'}%`}>
                 <div
-                  className={`w-full rounded-md ${current ? 'bg-emerald-500' : 'bg-emerald-500/40'}`}
+                  className={`w-full rounded-lg ${current ? 'bg-primary' : 'bg-primary/35'}`}
                   style={{ height: w.rate === null ? 0 : `${Math.max(w.rate, 3)}%` }}
                 />
               </div>
@@ -94,7 +94,7 @@ export default function Analytics() {
               <span className="w-8 text-neutral-400">{d}</span>
               <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-black/5 dark:bg-white/10">
                 <div
-                  className={`h-full rounded-full ${i === worstDay?.i ? 'bg-amber-500' : 'bg-emerald-500'}`}
+                  className={`h-full rounded-full ${i === worstDay?.i ? 'bg-amber-500' : 'bg-primary'}`}
                   style={{ width: `${weekdays[i] ?? 0}%` }}
                 />
               </div>
@@ -135,7 +135,7 @@ export default function Analytics() {
 
       <div>
         <div className="mb-2 px-1 text-xs font-medium uppercase tracking-wide text-neutral-400">Habits · last 30 days</div>
-        <div className="space-y-0.5 overflow-hidden rounded-2xl">
+        <div className="space-y-0.5 overflow-hidden rounded-card">
           {perHabit.map((s) => (
             <div key={s.habit.id} className="flex items-center gap-3 bg-container px-4 py-3">
               <IconBadge icon={s.habit.icon} color={s.habit.color} />
@@ -187,7 +187,7 @@ function Change({ value, suffix }: { value: number | null; suffix: string }) {
 function IconBadge({ icon, color }: { icon: string; color: string }) {
   const hex = colorHex(color)
   return (
-    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl" style={{ background: `${hex}22` }}>
+    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-tile" style={{ background: `${hex}22` }}>
       <HabitIcon name={icon} className="h-[18px] w-[18px]" style={{ color: hex }} />
     </div>
   )
@@ -195,7 +195,7 @@ function IconBadge({ icon, color }: { icon: string; color: string }) {
 
 function Card({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl bg-container p-4">{children}</div>
+    <div className="rounded-card bg-container p-4">{children}</div>
   )
 }
 

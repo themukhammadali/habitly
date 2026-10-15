@@ -7,6 +7,9 @@ import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.ColorStateList;
+import android.content.res.Configuration;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.View;
@@ -99,6 +102,7 @@ public class HabitlyWidgetProvider extends AppWidgetProvider {
 
     private static RemoteViews build(Context ctx, AppWidgetManager manager, int widgetId) {
         RemoteViews views = new RemoteViews(ctx.getPackageName(), R.layout.widget_habit);
+        applyPalette(ctx, views);
         // A widget placed without choosing (e.g. by the launcher) starts on the first habit.
         if (!WidgetStore.isAssigned(ctx, widgetId)) WidgetStore.showNext(ctx, widgetId);
         WidgetStore.Habit habit = WidgetStore.habitFor(ctx, widgetId);
@@ -156,6 +160,17 @@ public class HabitlyWidgetProvider extends AppWidgetProvider {
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         views.setOnClickPendingIntent(R.id.widget_root, open);
         return views;
+    }
+
+    /** Tints the card and the switch button with the app's color palette (Android 12+). */
+    private static void applyPalette(Context ctx, RemoteViews views) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return;
+        boolean dark = (ctx.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
+                == Configuration.UI_MODE_NIGHT_YES;
+        int[] colors = WidgetStore.colors(ctx, dark);
+        if (colors == null) return;
+        views.setColorStateList(R.id.widget_root, "setBackgroundTintList", ColorStateList.valueOf(colors[0]));
+        views.setColorStateList(R.id.widget_switch, "setBackgroundTintList", ColorStateList.valueOf(colors[1]));
     }
 
     private static String subtitle(WidgetStore.Habit h) {

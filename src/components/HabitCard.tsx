@@ -45,12 +45,12 @@ export default function HabitCard({
 
   return (
     <div
-      className="rounded-2xl bg-container p-4 transition active:scale-[0.99]"
+      className="rounded-card bg-container p-4 transition duration-300 ease-spring active:scale-[0.98]"
       onClick={dragHandle ? undefined : onOpen}
       role={dragHandle ? undefined : 'button'}
     >
       <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" style={{ background: `${hex}22` }}>
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-tile" style={{ background: `${hex}22` }}>
           <HabitIcon name={habit.icon} className="h-5 w-5" style={{ color: hex }} />
         </div>
         <div className="min-w-0 flex-1">
@@ -69,7 +69,7 @@ export default function HabitCard({
             }}
             aria-label={done ? `Mark ${habit.name} not done` : `Mark ${habit.name} done`}
             aria-pressed={done}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition active:scale-90"
+            className={`flex h-11 w-11 shrink-0 items-center justify-center transition-all duration-300 ease-spring active:scale-90 ${done ? 'rounded-[16px]' : 'rounded-full'}`}
             style={{
               background: done ? hex : 'transparent',
               border: done ? 'none' : `2px solid ${hex}`,

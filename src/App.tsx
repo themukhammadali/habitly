@@ -43,6 +43,7 @@ const TITLES: Record<Tab, string> = { habits: 'Habits', analytics: 'Analytics', 
 export default function App() {
   const habits = useStore((s) => s.habits)
   const theme = useStore((s) => s.settings.theme)
+  const palette = useStore((s) => s.settings.palette)
   const reorder = useStore((s) => s.reorder)
   const deleteHabit = useStore((s) => s.deleteHabit)
   const restoreHabit = useStore((s) => s.restoreHabit)
@@ -56,7 +57,7 @@ export default function App() {
   // Cards always act on today; past days are edited from a habit's calendar.
   const day = today
 
-  useApplyTheme(theme)
+  useApplyTheme(theme, palette)
   useNativeSync(habits)
 
   const active = useMemo(
@@ -82,7 +83,7 @@ export default function App() {
     <div className="mx-auto flex min-h-full max-w-md flex-col">
       <header className="sticky top-0 z-20 bg-surface/90 px-5 pb-3 pt-safe backdrop-blur-xl">
         <div className="flex items-center justify-between pt-3">
-          <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50">
+          <h1 className="text-[32px] font-extrabold tracking-tight text-neutral-900 dark:text-neutral-50">
             {TITLES[tab]}
           </h1>
         </div>
@@ -140,7 +141,7 @@ export default function App() {
         aria-label="Main"
         className="fixed inset-x-0 bottom-0 z-20 mx-auto flex max-w-md justify-center px-6 pb-safe"
       >
-        <div className="mb-4 flex w-full items-center justify-around rounded-full bg-container-high/95 px-2 py-2 shadow-lg backdrop-blur-xl">
+        <div className="mb-4 flex w-full items-center justify-around rounded-full bg-container-high/95 px-2 py-2 shadow-lg shadow-black/5 backdrop-blur-xl">
           <TabButton active={tab === 'habits'} onClick={() => setTab('habits')} label="Habits" icon={CircleCheckBig} />
           <TabButton
             active={tab === 'analytics'}
@@ -157,7 +158,7 @@ export default function App() {
               setAdding(true)
             }}
             aria-label="Add habit"
-            className="flex h-12 w-12 items-center justify-center rounded-full bg-neutral-900 text-white transition active:scale-90 dark:bg-neutral-100 dark:text-neutral-900"
+            className="flex h-14 w-14 items-center justify-center rounded-[20px] bg-primary text-on-primary transition-all duration-300 ease-spring active:scale-90 active:rounded-full"
           >
             <Plus className="h-6 w-6" strokeWidth={2.4} />
           </button>
@@ -196,9 +197,9 @@ function DaySummary({
   const r = 18
   const c = 2 * Math.PI * r
   return (
-    <div className="mt-3 flex items-center gap-3">
+    <div className="mt-3 flex items-center gap-3 rounded-3xl bg-primary-container px-4 py-3 text-on-primary-container">
       <svg viewBox="0 0 44 44" className="h-11 w-11 -rotate-90" aria-hidden>
-        <circle cx="22" cy="22" r={r} fill="none" strokeWidth="5" className="stroke-black/10 dark:stroke-white/10" />
+        <circle cx="22" cy="22" r={r} fill="none" strokeWidth="5" className="stroke-primary/20" />
         <circle
           cx="22"
           cy="22"
@@ -208,14 +209,14 @@ function DaySummary({
           strokeLinecap="round"
           strokeDasharray={c}
           strokeDashoffset={c * (1 - progress)}
-          className="stroke-emerald-500 transition-[stroke-dashoffset] duration-500 ease-out"
+          className="stroke-primary transition-[stroke-dashoffset] duration-500 ease-out"
         />
       </svg>
       <div className="min-w-0 flex-1">
-        <div className="text-sm font-semibold text-neutral-900 dark:text-neutral-50">
+        <div className="text-[15px] font-bold">
           {total === 0 ? 'Nothing scheduled' : all ? 'All done!' : `${done} of ${total} done`}
         </div>
-        <div className="text-xs text-neutral-400">
+        <div className="text-xs opacity-75">
           {new Date().toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' })}
         </div>
       </div>
@@ -276,7 +277,7 @@ function SortableHabit({
 function EmptyState({ onAdd }: { onAdd: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center px-8 pt-24 text-center">
-      <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-500">
+      <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-[22px] bg-primary-container text-on-primary-container">
         <CheckCircleIcon />
       </div>
       <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">No habits yet</h2>
@@ -284,7 +285,7 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
       <button
         type="button"
         onClick={onAdd}
-        className="mt-5 rounded-full bg-neutral-900 px-5 py-2.5 text-sm font-semibold text-white active:scale-95 dark:bg-neutral-100 dark:text-neutral-900"
+        className="mt-5 rounded-full bg-primary px-6 py-3 text-sm font-bold text-on-primary transition duration-300 ease-spring active:scale-95"
       >
         Add a Habit
       </button>
@@ -309,9 +310,16 @@ function TabButton({
       onClick={onClick}
       aria-label={label}
       aria-current={active ? 'page' : undefined}
-      className={`flex h-12 w-14 flex-col items-center justify-center gap-0.5 rounded-full text-[10px] font-medium transition active:scale-90 ${active ? 'text-neutral-900 dark:text-neutral-50' : 'text-neutral-400' }`}
+      className={`flex w-16 flex-col items-center justify-center gap-1 text-[11px] transition active:scale-90 ${active ? 'font-bold text-neutral-900 dark:text-neutral-50' : 'font-medium text-neutral-500'}`}
     >
-      <Icon className="h-[22px] w-[22px]" strokeWidth={active ? 2.3 : 1.8} />
+      {/* Material's active indicator: a pill behind the icon. */}
+      <span
+        className={`flex h-8 items-center justify-center rounded-full transition-all duration-300 ease-spring ${
+          active ? 'w-14 bg-primary-container text-on-primary-container' : 'w-8'
+        }`}
+      >
+        <Icon className="h-[22px] w-[22px]" strokeWidth={active ? 2.3 : 1.8} />
+      </span>
       {label}
     </button>
   )
@@ -385,23 +393,28 @@ function useNativeSync(habits: Habit[]) {
     }
   }, [])
 
+  // The widget also follows the color palette.
+  const palette = useStore((s) => s.settings.palette)
   useEffect(() => {
     const t = setTimeout(() => {
       syncReminders(habits)
       syncWidget(habits)
     }, 400)
     return () => clearTimeout(t)
-  }, [habits])
+  }, [habits, palette])
 }
 
-function useApplyTheme(theme: string) {
+function useApplyTheme(theme: string, palette: string) {
   useEffect(() => {
     const root = document.documentElement
     const mq = window.matchMedia('(prefers-color-scheme: dark)')
     const apply = () => {
       const dark = theme === 'dark' || (theme === 'system' && mq.matches)
       root.classList.toggle('dark', dark)
-      const color = dark ? '#0a0a0b' : '#f2f2f6'
+      root.dataset.palette = palette
+      // Browser and Android status bar follow the palette's page color.
+      const [r, g, b] = getComputedStyle(root).getPropertyValue('--surface').trim().split(/\s+/).map(Number)
+      const color = `#${[r, g, b].map((n) => (n || 0).toString(16).padStart(2, '0')).join('')}`
       document.querySelector('meta[name="theme-color"]')?.setAttribute('content', color)
       if (Capacitor.isNativePlatform()) {
         StatusBar.setStyle({ style: dark ? Style.Dark : Style.Light }).catch(() => {})
@@ -413,5 +426,5 @@ function useApplyTheme(theme: string) {
       mq.addEventListener('change', apply)
       return () => mq.removeEventListener('change', apply)
     }
-  }, [theme])
+  }, [theme, palette])
 }

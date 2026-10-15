@@ -37,7 +37,7 @@ export default function ReminderSettings() {
   if (!remindersSupported() || notifications === null) return null
 
   return (
-    <div className="space-y-0.5 overflow-hidden rounded-2xl">
+    <div className="space-y-0.5 overflow-hidden rounded-card">
       <Row
         title="Notifications"
         detail={notifications ? 'Allowed' : 'Needed for reminders'}
@@ -93,7 +93,7 @@ function Row({ title, detail, ok, action }: { title: string; detail: string; ok:
 
 function ActionButton({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
   return (
-    <button type="button" onClick={onClick} className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+    <button type="button" onClick={onClick} className="rounded-full bg-primary px-3.5 py-1.5 text-sm font-semibold text-on-primary">
       {children}
     </button>
   )

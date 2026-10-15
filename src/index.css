@@ -4,17 +4,89 @@
 
 :root {
   color-scheme: light dark;
+}
+
+/* Color palettes (Settings → Appearance). Each sets tonal surfaces and an accent,
+   in light and dark. Habits keep their own colors on top. */
+:root, html[data-palette="neutral"] {
   --surface: 242 242 246;
   --container: 255 255 255;
   --container-high: 234 234 239;
   --container-highest: 224 224 230;
+  --primary: 28 28 30;
+  --on-primary: 255 255 255;
+  --primary-container: 228 228 234;
+  --on-primary-container: 28 28 30;
 }
-
-html.dark {
+html.dark, html.dark[data-palette="neutral"] {
   --surface: 10 10 11;
   --container: 28 28 30;
   --container-high: 44 44 47;
   --container-highest: 58 58 62;
+  --primary: 236 236 240;
+  --on-primary: 20 20 22;
+  --primary-container: 52 52 56;
+  --on-primary-container: 236 236 240;
+}
+html[data-palette="sage"] {
+  --surface: 239 247 241;
+  --container: 252 254 252;
+  --container-high: 226 240 230;
+  --container-highest: 212 231 218;
+  --primary: 30 122 76;
+  --on-primary: 255 255 255;
+  --primary-container: 199 239 214;
+  --on-primary-container: 9 56 31;
+}
+html.dark[data-palette="sage"] {
+  --surface: 13 20 16;
+  --container: 24 33 28;
+  --container-high: 36 48 41;
+  --container-highest: 49 63 55;
+  --primary: 120 218 158;
+  --on-primary: 0 57 30;
+  --primary-container: 23 82 52;
+  --on-primary-container: 186 245 207;
+}
+html[data-palette="sky"] {
+  --surface: 239 245 252;
+  --container: 252 253 255;
+  --container-high: 225 235 248;
+  --container-highest: 210 224 243;
+  --primary: 37 99 199;
+  --on-primary: 255 255 255;
+  --primary-container: 214 228 255;
+  --on-primary-container: 14 47 105;
+}
+html.dark[data-palette="sky"] {
+  --surface: 13 17 24;
+  --container: 24 30 40;
+  --container-high: 36 44 58;
+  --container-highest: 49 58 74;
+  --primary: 164 196 255;
+  --on-primary: 0 47 104;
+  --primary-container: 30 70 140;
+  --on-primary-container: 214 228 255;
+}
+html[data-palette="lavender"] {
+  --surface: 245 242 252;
+  --container: 254 252 255;
+  --container-high: 235 229 248;
+  --container-highest: 224 215 243;
+  --primary: 110 82 190;
+  --on-primary: 255 255 255;
+  --primary-container: 232 222 255;
+  --on-primary-container: 50 30 105;
+}
+html.dark[data-palette="lavender"] {
+  --surface: 19 16 25;
+  --container: 31 27 40;
+  --container-high: 44 39 56;
+  --container-highest: 58 52 72;
+  --primary: 206 189 255;
+  --on-primary: 55 30 115;
+  --primary-container: 80 60 150;
+  --on-primary-container: 232 222 255;
 }
 
 html,

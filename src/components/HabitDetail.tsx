@@ -178,7 +178,7 @@ export default function HabitDetail({
                 showToast('Long-press your home screen, tap Widgets, and choose Habitly.')
               }
             }}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-container py-3.5 text-sm font-semibold active:scale-[0.99]"
+            className="flex w-full items-center justify-center gap-2 rounded-card bg-container py-3.5 text-sm font-semibold active:scale-[0.99]"
             style={{ color: hex }}
           >
             <LayoutGrid className="h-4 w-4" />
@@ -210,7 +210,7 @@ export default function HabitDetail({
 
 function Card({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl bg-container p-4">
+    <div className="rounded-card bg-container p-4">
       {children}
     </div>
   )
@@ -234,7 +234,7 @@ function Stat({
   color: string
 }) {
   return (
-    <div className="rounded-2xl bg-container p-4">
+    <div className="rounded-card bg-container p-4">
       <div className="text-2xl font-bold" style={{ color }}>
         {value}
       </div>

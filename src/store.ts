@@ -24,6 +24,7 @@ interface State {
   setArchived: (id: string, archived: boolean) => void
   reorder: (ids: string[]) => void
   setTheme: (theme: Settings['theme']) => void
+  setPalette: (palette: Settings['palette']) => void
   replaceAll: (habits: Habit[], settings: Settings) => void
 }
 
@@ -35,7 +36,7 @@ export const useStore = create<State>()(
   persist(
     (set) => ({
       habits: [],
-      settings: { theme: 'system' },
+      settings: { theme: 'system', palette: 'sage' },
 
       addHabit: (h) =>
         set((s) => ({
@@ -105,11 +106,14 @@ export const useStore = create<State>()(
       setTheme: (theme) =>
         set((s) => ({ settings: { ...s.settings, theme } })),
 
+      setPalette: (palette) =>
+        set((s) => ({ settings: { ...s.settings, palette } })),
+
       replaceAll: (habits, settings) => set({ habits, settings }),
     }),
     {
       name: 'habitly-v1',
-      version: 2,
+      version: 3,
       // v1: emoji icons became icon keys; schedules, reminders and completion times were added.
       // v2: measurable habits (goal, amounts). normalizeHabit upgrades any older version.
       migrate: (persisted, version) => {
@@ -117,6 +121,8 @@ export const useStore = create<State>()(
         if (version < 2) {
           state.habits = (state.habits ?? []).map((h, i) => normalizeHabit(h, i))
         }
+        // v3: color palettes. Existing users keep the neutral look they had.
+        if (version < 3) state.settings = { theme: 'system', ...state.settings, palette: 'neutral' }
         return state as State
       },
     },

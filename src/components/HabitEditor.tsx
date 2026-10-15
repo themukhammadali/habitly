@@ -10,6 +10,7 @@ import { ensurePermission, remindersSupported } from '../lib/notify'
 import { useBackHandler } from '../hooks/useBackHandler'
 import { useStore } from '../store'
 import { useToast } from './Toast'
+import ButtonGroup from './ButtonGroup'
 
 const CLOSE_MS = 220
 /** Icons shown before "Show all": two rows. */
@@ -207,7 +208,7 @@ export default function HabitEditor({
               placeholder="Read 20 pages"
               maxLength={40}
               enterKeyHint="next"
-              className="w-full rounded-xl bg-container-high px-3 py-2.5 text-neutral-900 outline-none dark:text-neutral-50"
+              className="w-full rounded-2xl bg-container-high px-4 py-3 text-neutral-900 outline-none dark:text-neutral-50"
               style={{ caretColor: hex }}
             />
           </Field>
@@ -218,7 +219,7 @@ export default function HabitEditor({
               placeholder="Optional details"
               maxLength={60}
               enterKeyHint="done"
-              className="w-full rounded-xl bg-container-high px-3 py-2.5 text-neutral-900 outline-none dark:text-neutral-50"
+              className="w-full rounded-2xl bg-container-high px-4 py-3 text-neutral-900 outline-none dark:text-neutral-50"
               style={{ caretColor: hex }}
             />
           </Field>
@@ -234,9 +235,9 @@ export default function HabitEditor({
                   onClick={() => setIcon(key)}
                   aria-label={key}
                   aria-pressed={icon === key}
-                  className="flex aspect-square items-center justify-center rounded-xl transition active:scale-90"
+                  className={`flex aspect-square items-center justify-center transition-all duration-300 ease-spring active:scale-90 ${icon === key ? 'rounded-full' : 'rounded-2xl'}`}
                   style={{
-                    background: icon === key ? `${hex}26` : 'rgba(120,120,128,0.1)',
+                    background: icon === key ? `${hex}26` : 'rgb(var(--container-high))',
                     outline: icon === key ? `2px solid ${hex}` : 'none',
                     color: icon === key ? hex : undefined,
                   }}
@@ -248,7 +249,7 @@ export default function HabitEditor({
             <button
               type="button"
               onClick={() => setAllIcons((a) => !a)}
-              className="mt-3 w-full rounded-xl py-2 text-sm font-medium text-neutral-500 active:bg-black/5 dark:active:bg-white/10"
+              className="mt-3 w-full rounded-full bg-container-high py-2.5 text-sm font-semibold text-neutral-600 transition active:scale-[0.98] dark:text-neutral-300"
             >
               {allIcons ? 'Show fewer' : `Show all ${ICONS.length} icons`}
             </button>
@@ -290,7 +291,7 @@ export default function HabitEditor({
         </Card>
 
         {editing && habit && (
-          <div className="space-y-0.5 overflow-hidden rounded-2xl">
+          <div className="space-y-0.5 overflow-hidden rounded-card">
             <button
               type="button"
               onClick={() => {
@@ -322,7 +323,7 @@ export default function HabitEditor({
 
 function Card({ children }: { children: React.ReactNode }) {
   return (
-    <div className="space-y-5 rounded-2xl bg-container p-4">
+    <div className="space-y-5 rounded-card bg-container p-4">
       {children}
     </div>
   )
@@ -343,13 +344,13 @@ function ScheduleEditor({
 }) {
   return (
     <div className="space-y-3">
-      <Segmented
+      <ButtonGroup
         color={color}
         value={schedule.kind}
         options={[
           { value: 'daily', label: 'Every day' },
           { value: 'weekdays', label: 'Some days' },
-          { value: 'weekly', label: 'Times a week' },
+          { value: 'weekly', label: 'Weekly' },
         ]}
         onChange={(kind) =>
           onChange(
@@ -376,9 +377,9 @@ function ScheduleEditor({
                   if (days.length === 0) return
                   onChange(days.length === 7 ? { kind: 'daily' } : { kind: 'weekdays', days })
                 }}
-                className="flex h-10 flex-1 items-center justify-center rounded-xl text-xs font-semibold transition active:scale-90"
+                className={`flex h-11 flex-1 items-center justify-center text-xs font-bold transition-all duration-300 ease-spring active:scale-90 ${on ? 'rounded-full' : 'rounded-2xl'}`}
                 style={{
-                  background: on ? color : 'rgba(120,120,128,0.12)',
+                  background: on ? color : 'rgb(var(--container-high))',
                   color: on ? '#fff' : undefined,
                 }}
               >
@@ -390,7 +391,7 @@ function ScheduleEditor({
       )}
 
       {schedule.kind === 'weekly' && (
-        <div className="flex items-center justify-between rounded-xl bg-container-high px-3 py-2">
+        <div className="flex items-center justify-between rounded-3xl bg-container-high px-4 py-2.5">
           <span className="text-sm text-neutral-700 dark:text-neutral-300">
             {schedule.times} {schedule.times === 1 ? 'time' : 'times'} a week, any days
           </span>
@@ -431,7 +432,7 @@ function ReminderEditor({
 
   return (
     <div className="space-y-3">
-      <Segmented
+      <ButtonGroup
         color={color}
         value={reminder.mode}
         options={[
@@ -443,7 +444,7 @@ function ReminderEditor({
       />
 
       {reminder.mode !== 'off' && (
-        <div className="space-y-2 rounded-xl bg-container-high p-3 text-sm">
+        <div className="space-y-2 rounded-3xl bg-container-high p-4 text-sm">
           {reminder.mode === 'smart' && (
             <p className="text-neutral-600 dark:text-neutral-300">
               {habit && learned
@@ -482,7 +483,7 @@ function GoalEditor({
 }) {
   return (
     <div className="space-y-3">
-      <Segmented
+      <ButtonGroup
         color={color}
         value={goal ? 'amount' : 'check'}
         options={[
@@ -492,7 +493,7 @@ function GoalEditor({
         onChange={(v) => onChange(v === 'check' ? undefined : (goal ?? { target: 8, unit: 'glasses', step: 1 }))}
       />
       {goal && (
-        <div className="space-y-3 rounded-xl bg-container-high p-3">
+        <div className="space-y-3 rounded-3xl bg-container-high p-4">
           <div className="flex gap-2">
             <NumberField
               label="Daily goal"
@@ -520,7 +521,7 @@ function GoalEditor({
                 style={
                   goal.unit === u
                     ? { background: color, color: '#fff' }
-                    : { background: 'rgba(120,120,128,0.14)', color: 'rgb(115 115 115)' }
+                    : { background: 'rgb(var(--container-high))', color: 'rgb(115 115 115)' }
                 }
               >
                 {u}
@@ -566,38 +567,6 @@ function NumberField({ label, value, onChange }: { label: string; value: number;
   )
 }
 
-function Segmented<T extends string>({
-  value,
-  options,
-  onChange,
-  color,
-}: {
-  value: T
-  options: { value: T; label: string }[]
-  onChange: (v: T) => void
-  color: string
-}) {
-  return (
-    <div className="flex gap-1 rounded-xl bg-container-high p-1">
-      {options.map((o) => (
-        <button
-          key={o.value}
-          type="button"
-          aria-pressed={value === o.value}
-          onClick={() => onChange(o.value)}
-          className="flex-1 rounded-lg py-2 text-sm font-medium transition"
-          style={
-            value === o.value
-              ? { background: color, color: '#fff' }
-              : { color: 'rgb(115 115 115)' }
-          }
-        >
-          {o.label}
-        </button>
-      ))}
-    </div>
-  )
-}
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (

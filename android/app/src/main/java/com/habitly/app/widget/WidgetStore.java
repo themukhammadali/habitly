@@ -99,6 +99,21 @@ final class WidgetStore {
         return out;
     }
 
+    /**
+     * The app's palette colors for the widget, {background, tile}, for light or
+     * dark mode; null before the app has sent any.
+     */
+    static synchronized int[] colors(Context ctx, boolean dark) {
+        String json = prefs(ctx).getString(KEY_SNAPSHOT, null);
+        if (json == null) return null;
+        try {
+            JSONObject mode = new JSONObject(json).getJSONObject("colors").getJSONObject(dark ? "dark" : "light");
+            return new int[] {Color.parseColor(mode.getString("background")), Color.parseColor(mode.getString("tile"))};
+        } catch (JSONException | IllegalArgumentException e) {
+            return null;
+        }
+    }
+
     /** The habit a widget shows, or null if it was deleted or archived in the app. */
     static synchronized Habit habitFor(Context ctx, int widgetId) {
         String id = prefs(ctx).getString(KEY_WIDGET + widgetId, null);

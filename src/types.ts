@@ -43,6 +43,9 @@ export interface Habit {
   order: number
 }
 
+export type Palette = 'neutral' | 'sage' | 'sky' | 'lavender'
+
 export interface Settings {
   theme: ThemePref
+  palette: Palette
 }

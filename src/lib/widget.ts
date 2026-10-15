@@ -3,7 +3,7 @@
 // taps the widget queued (with the time they happened) when it next runs.
 
 import { Capacitor, registerPlugin, type PluginListenerHandle } from '@capacitor/core'
-import type { Habit } from '../types'
+import type { Habit, Palette } from '../types'
 import { addDaysKey, todayKey } from './dates'
 import { colorHex } from './palette'
 import { doneInWeek, weekStartKey } from './schedule'
@@ -26,6 +26,8 @@ export const WIDGET_HISTORY_DAYS = 245
 /** What the widget needs to draw today, and to roll over to tomorrow without the app. */
 export interface WidgetSnapshot {
   date: string
+  /** The app's palette, as widget background and tile colors for light and dark mode. */
+  colors: { light: { background: string; tile: string }; dark: { background: string; tile: string } }
   weekStart: string
   habits: {
     id: string
@@ -48,9 +50,18 @@ export interface WidgetSnapshot {
   }[]
 }
 
-export function buildSnapshot(habits: Habit[], today = todayKey()): WidgetSnapshot {
+/** Widget colors per palette: the card (container) and inner tiles (container-high), as in src/index.css. */
+const WIDGET_COLORS: Record<Palette, WidgetSnapshot['colors']> = {
+  neutral: { light: { background: '#ffffff', tile: '#eaeaef' }, dark: { background: '#1c1c1e', tile: '#2c2c2f' } },
+  sage: { light: { background: '#fcfefc', tile: '#e2f0e6' }, dark: { background: '#18211c', tile: '#243029' } },
+  sky: { light: { background: '#fcfdff', tile: '#e1ebf8' }, dark: { background: '#181e28', tile: '#242c3a' } },
+  lavender: { light: { background: '#fefcff', tile: '#ebe5f8' }, dark: { background: '#1f1b28', tile: '#2c2738' } },
+}
+
+export function buildSnapshot(habits: Habit[], today = todayKey(), palette: Palette = 'neutral'): WidgetSnapshot {
   return {
     date: today,
+    colors: WIDGET_COLORS[palette],
     weekStart: weekStartKey(today),
     habits: habits
       .filter((h) => !h.archived)
@@ -126,7 +137,11 @@ let syncing: Promise<void> = Promise.resolve()
 export function syncWidget(habits: Habit[]): Promise<void> {
   if (!native()) return Promise.resolve()
   syncing = syncing
-    .then(() => Widget.update({ snapshot: JSON.stringify(buildSnapshot(habits)) }))
+    .then(() =>
+      Widget.update({
+        snapshot: JSON.stringify(buildSnapshot(habits, todayKey(), useStore.getState().settings.palette)),
+      }),
+    )
     .catch((e) => console.warn('Widget sync failed', e))
   return syncing
 }
