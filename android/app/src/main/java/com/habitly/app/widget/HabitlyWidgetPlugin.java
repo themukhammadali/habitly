@@ -1,7 +1,9 @@
 package com.habitly.app.widget;
 
+import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
+import android.content.Intent;
 import android.os.Build;
 
 import com.getcapacitor.JSObject;
@@ -40,16 +42,27 @@ public class HabitlyWidgetPlugin extends Plugin {
         call.resolve();
     }
 
-    /** Asks the launcher to place the widget (Android 8+, launcher permitting). */
+    /**
+     * Asks the launcher to place a widget for a habit (Android 8+, launcher
+     * permitting). Once placed, the provider learns its id and assigns the habit.
+     */
     @PluginMethod
     public void requestPin(PluginCall call) {
+        String habitId = call.getString("habitId");
         JSObject result = new JSObject();
         boolean requested = false;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (habitId != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             AppWidgetManager manager = AppWidgetManager.getInstance(getContext());
             if (manager.isRequestPinAppWidgetSupported()) {
+                Intent placed = new Intent(getContext(), HabitlyWidgetProvider.class)
+                        .setAction(HabitlyWidgetProvider.ACTION_PINNED)
+                        .putExtra(HabitlyWidgetProvider.EXTRA_HABIT_ID, habitId);
+                // Mutable: the launcher adds the new widget's id to this intent.
+                int mutable = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ? PendingIntent.FLAG_MUTABLE : 0;
+                PendingIntent callback = PendingIntent.getBroadcast(getContext(), habitId.hashCode(), placed,
+                        PendingIntent.FLAG_UPDATE_CURRENT | mutable);
                 requested = manager.requestPinAppWidget(
-                        new ComponentName(getContext(), HabitlyWidgetProvider.class), null, null);
+                        new ComponentName(getContext(), HabitlyWidgetProvider.class), null, callback);
             }
         }
         result.put("requested", requested);

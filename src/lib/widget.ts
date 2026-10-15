@@ -4,7 +4,7 @@
 
 import { Capacitor, registerPlugin, type PluginListenerHandle } from '@capacitor/core'
 import type { Habit } from '../types'
-import { todayKey } from './dates'
+import { addDaysKey, todayKey } from './dates'
 import { colorHex } from './palette'
 import { doneInWeek, weekStartKey } from './schedule'
 import { useStore } from '../store'
@@ -14,11 +14,14 @@ interface WidgetPlugin {
   /** Taps queued by the widget since the last call, oldest first. Clears the queue. */
   takePendingActions(): Promise<{ actions: string }>
   addListener(event: 'widgetAction', listener: () => void): Promise<PluginListenerHandle>
-  requestPin(): Promise<{ requested: boolean }>
+  requestPin(options: { habitId: string }): Promise<{ requested: boolean }>
 }
 
 const Widget = registerPlugin<WidgetPlugin>('HabitlyWidget')
 const native = () => Capacitor.getPlatform() === 'android'
+
+/** Days of history sent for the widget's heatmap (26 weeks, more than a 3×2 widget can show). */
+export const WIDGET_HISTORY_DAYS = 182
 
 /** What the widget needs to draw today, and to roll over to tomorrow without the app. */
 export interface WidgetSnapshot {
@@ -37,6 +40,11 @@ export interface WidgetSnapshot {
     weekly: { times: number; done: number } | null
     /** Measurable habits: today's amount toward the goal. */
     goal: { target: number; unit: string; step: number; amount: number } | null
+    /**
+     * One value per day, oldest first, ending today: 1 done, 0 not done,
+     * 0–1 part of a measurable goal, -1 before the habit existed.
+     */
+    history: number[]
   }[]
 }
 
@@ -56,8 +64,23 @@ export function buildSnapshot(habits: Habit[], today = todayKey()): WidgetSnapsh
         days: h.schedule.kind === 'weekdays' ? h.schedule.days : null,
         weekly: h.schedule.kind === 'weekly' ? { times: h.schedule.times, done: doneInWeek(h.completions, today) } : null,
         goal: h.goal ? { ...h.goal, amount: h.amounts[today] ?? 0 } : null,
+        history: history(h, today),
       })),
   }
+}
+
+function history(h: Habit, today: string): number[] {
+  let start = h.createdAt
+  for (const k in h.completions) if (k < start) start = k
+  const out: number[] = []
+  for (let i = WIDGET_HISTORY_DAYS - 1; i >= 0; i--) {
+    const day = addDaysKey(today, -i)
+    if (day < start) out.push(-1)
+    else if (h.completions[day]) out.push(1)
+    else if (h.goal && h.amounts[day]) out.push(Math.round((h.amounts[day] / h.goal.target) * 100) / 100)
+    else out.push(0)
+  }
+  return out
 }
 
 export interface WidgetAction {
@@ -126,11 +149,16 @@ export async function initWidget() {
 
 export const widgetSupported = native
 
-/** Asks the launcher to add the widget. False if it can't, so the app can explain how instead. */
-export async function requestWidgetPin(): Promise<boolean> {
+/**
+ * Asks the launcher to add a widget for this habit. False if it can't, so the
+ * app can explain how to add one by hand instead.
+ */
+export async function requestWidgetPin(habitId: string): Promise<boolean> {
   if (!native()) return false
   try {
-    return (await Widget.requestPin()).requested
+    // Make sure the widget can find the habit as soon as it's placed.
+    await syncWidget(useStore.getState().habits)
+    return (await Widget.requestPin({ habitId })).requested
   } catch {
     return false
   }

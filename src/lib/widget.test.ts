@@ -54,6 +54,22 @@ describe('buildSnapshot', () => {
     expect(snap.habits[1].goal).toEqual({ target: 8, unit: 'glasses', step: 1, amount: 3 })
     expect(snap.habits[2].weekly).toEqual({ times: 3, done: 1 })
   })
+
+  it('sends history ending today: done, partial, and before the habit existed', () => {
+    const [h] = buildSnapshot(
+      [
+        habit({
+          createdAt: '2026-10-12',
+          goal: { target: 8, unit: 'glasses', step: 1 },
+          amounts: { '2026-10-12': 8, '2026-10-13': 2 },
+          completions: { '2026-10-12': true },
+        }),
+      ],
+      TODAY,
+    ).habits
+    expect(h.history).toHaveLength(182)
+    expect(h.history.slice(-4)).toEqual([-1, 1, 0.25, 0])
+  })
 })
 
 describe('applyWidgetActions', () => {

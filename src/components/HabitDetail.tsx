@@ -8,6 +8,9 @@ import { predict } from '../lib/predict'
 import { reminderTime } from '../lib/reminders'
 import { todayKey } from '../lib/dates'
 import { useBackHandler } from '../hooks/useBackHandler'
+import { LayoutGrid } from 'lucide-react'
+import { requestWidgetPin, widgetSupported } from '../lib/widget'
+import { useToast } from './Toast'
 import { amountBetween, formatAmount, partialDays, usualAmount } from '../lib/measure'
 import { fromKey } from '../lib/dates'
 import { weekStartKey } from '../lib/schedule'
@@ -26,6 +29,7 @@ export default function HabitDetail({
 }) {
   const toggleDay = useStore((s) => s.toggleDay)
   const setAmount = useStore((s) => s.setAmount)
+  const showToast = useToast((s) => s.show)
   const goal = habit.goal
 
   /** Tapping a day: ticks it, or for measurable habits asks for the exact amount. */
@@ -165,6 +169,22 @@ export default function HabitDetail({
             partial={goal ? partialDays(habit) : undefined}
           />
         </Card>
+
+        {widgetSupported() && (
+          <button
+            type="button"
+            onClick={async () => {
+              if (!(await requestWidgetPin(habit.id))) {
+                showToast('Long-press your home screen, tap Widgets, and choose Habitly.')
+              }
+            }}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-white py-3.5 text-sm font-semibold shadow-sm ring-1 ring-black/5 active:scale-[0.99] dark:bg-neutral-900 dark:ring-white/5"
+            style={{ color: hex }}
+          >
+            <LayoutGrid className="h-4 w-4" />
+            Add to home screen
+          </button>
+        )}
 
         {/* Weekly pattern */}
         <Card>

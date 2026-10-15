@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="widget_title">Today</string>
-    <string name="widget_description">Check off today’s habits from your home screen</string>
-    <string name="widget_empty">Nothing scheduled today. Tap to open Habitly.</string>
+    <string name="widget_label">Habit</string>
+    <string name="widget_description">One habit with its heatmap. Tap the button to check it off.</string>
+    <string name="widget_choose_habit">Tap to choose a habit</string>
+    <string name="widget_habit_missing">This habit was deleted or archived. Tap to choose another.</string>
+    <string name="widget_config_title">Show which habit?</string>
+    <string name="widget_config_empty">Open Habitly and add a habit first.</string>
 </resources>

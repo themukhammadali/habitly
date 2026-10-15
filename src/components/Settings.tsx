@@ -7,7 +7,7 @@ import { HabitIcon } from '../lib/icons'
 import { colorHex } from '../lib/palette'
 import { useToast } from './Toast'
 import ReminderSettings from './ReminderSettings'
-import { requestWidgetPin, widgetSupported } from '../lib/widget'
+import { widgetSupported } from '../lib/widget'
 import { remindersSupported } from '../lib/notify'
 
 const REPO = 'https://github.com/themukhammadali/habitly'
@@ -94,20 +94,11 @@ export default function Settings() {
       {widgetSupported() && (
         <div>
           <SectionLabel>Home screen widget</SectionLabel>
-          <div className="flex items-center gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5 dark:bg-neutral-900 dark:ring-white/5">
-            <p className="flex-1 text-sm text-neutral-500">Check off today’s habits without opening the app.</p>
-            <button
-              type="button"
-              onClick={async () => {
-                if (!(await requestWidgetPin())) {
-                  showToast('Long-press your home screen, tap Widgets, and choose Habitly.')
-                }
-              }}
-              className="shrink-0 text-sm font-semibold text-emerald-600 dark:text-emerald-400"
-            >
-              Add widget
-            </button>
-          </div>
+          <p className="rounded-2xl bg-white p-4 text-sm text-neutral-500 shadow-sm ring-1 ring-black/5 dark:bg-neutral-900 dark:ring-white/5">
+            Each widget shows one habit with its heatmap. Open a habit and tap{' '}
+            <span className="font-medium text-neutral-700 dark:text-neutral-300">Add to home screen</span>, or long-press
+            your home screen, tap Widgets, and choose Habitly.
+          </p>
         </div>
       )}
 

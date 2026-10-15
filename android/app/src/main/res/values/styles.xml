@@ -23,4 +23,7 @@
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
         <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
     </style>
+
+    <!-- Habit picker for the home screen widget. -->
+    <style name="WidgetConfigTheme" parent="android:Theme.DeviceDefault.Light.Dialog.NoActionBar" />
 </resources>
