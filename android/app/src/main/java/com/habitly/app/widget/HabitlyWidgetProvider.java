@@ -26,6 +26,7 @@ public class HabitlyWidgetProvider extends AppWidgetProvider {
     static final String ACTION_TAP = "com.habitly.app.widget.TAP";
     static final String ACTION_PINNED = "com.habitly.app.widget.PINNED";
     static final String ACTION_MIDNIGHT = "com.habitly.app.widget.MIDNIGHT";
+    static final String ACTION_NEXT = "com.habitly.app.widget.NEXT";
     static final String EXTRA_HABIT_ID = "habitId";
 
     private static final DecimalFormat AMOUNT = new DecimalFormat("0.##");
@@ -65,6 +66,12 @@ public class HabitlyWidgetProvider extends AppWidgetProvider {
                 WidgetStore.assign(ctx, id, habitId);
                 AppWidgetManager.getInstance(ctx).updateAppWidget(id, build(ctx, AppWidgetManager.getInstance(ctx), id));
             }
+        } else if (ACTION_NEXT.equals(action)) {
+            int id = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID);
+            if (id != AppWidgetManager.INVALID_APPWIDGET_ID) {
+                WidgetStore.showNext(ctx, id);
+                refresh(ctx, id);
+            }
         } else if (ACTION_MIDNIGHT.equals(action)) {
             refreshAll(ctx);
         }
@@ -92,10 +99,12 @@ public class HabitlyWidgetProvider extends AppWidgetProvider {
 
     private static RemoteViews build(Context ctx, AppWidgetManager manager, int widgetId) {
         RemoteViews views = new RemoteViews(ctx.getPackageName(), R.layout.widget_habit);
+        // A widget placed without choosing (e.g. by the launcher) starts on the first habit.
+        if (!WidgetStore.isAssigned(ctx, widgetId)) WidgetStore.showNext(ctx, widgetId);
         WidgetStore.Habit habit = WidgetStore.habitFor(ctx, widgetId);
 
         if (habit == null) {
-            // Not chosen yet, or the habit was deleted or archived: tap to choose one.
+            // No habits yet, or the habit was deleted or archived: tap to choose one.
             boolean assigned = WidgetStore.isAssigned(ctx, widgetId);
             views.setViewVisibility(R.id.widget_content, View.GONE);
             views.setViewVisibility(R.id.widget_message, View.VISIBLE);
@@ -133,6 +142,15 @@ public class HabitlyWidgetProvider extends AppWidgetProvider {
         views.setOnClickPendingIntent(R.id.widget_action, PendingIntent.getBroadcast(ctx, widgetId, tap,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
 
+        // Small switch button: cycle to the next habit. Hidden when there's only one.
+        boolean several = WidgetStore.habits(ctx).size() > 1;
+        views.setViewVisibility(R.id.widget_switch, several ? View.VISIBLE : View.GONE);
+        Intent next = new Intent(ctx, HabitlyWidgetProvider.class)
+                .setAction(ACTION_NEXT)
+                .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId);
+        views.setOnClickPendingIntent(R.id.widget_switch, PendingIntent.getBroadcast(ctx, 100000 + widgetId, next,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
+
         PendingIntent open = PendingIntent.getActivity(ctx, 0,
                 new Intent(ctx, MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP),
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
@@ -158,7 +176,7 @@ public class HabitlyWidgetProvider extends AppWidgetProvider {
         if (wDp <= 0) wDp = 250;
         if (hDp <= 0) hDp = 120;
         DisplayMetrics m = ctx.getResources().getDisplayMetrics();
-        int padding = 14 * 2;
+        int padding = (8 + 14) * 2; // margin plus the card's padding
         int header = 40 + 10;
         return new int[] {
             Math.round((wDp - padding) * m.density),

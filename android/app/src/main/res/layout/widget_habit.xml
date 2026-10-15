@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- The outer frame is the margin around the widget; the card inside it has the background. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="8dp">
+
+<FrameLayout
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -53,6 +59,16 @@
             </LinearLayout>
 
             <ImageView
+                android:id="@+id/widget_switch"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/widget_switch_background"
+                android:contentDescription="@string/widget_switch"
+                android:padding="6dp"
+                android:src="@drawable/widget_switch" />
+
+            <ImageView
                 android:id="@+id/widget_action"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
@@ -77,4 +93,5 @@
         android:textColor="@color/widget_text_secondary"
         android:textSize="14sp"
         android:visibility="gone" />
+</FrameLayout>
 </FrameLayout>

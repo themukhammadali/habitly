@@ -115,6 +115,16 @@ final class WidgetStore {
         prefs(ctx).edit().putString(KEY_WIDGET + widgetId, habitId).apply();
     }
 
+    /** Points a widget at the habit after its current one, wrapping around. */
+    static synchronized void showNext(Context ctx, int widgetId) {
+        List<Habit> all = habits(ctx);
+        if (all.isEmpty()) return;
+        String current = prefs(ctx).getString(KEY_WIDGET + widgetId, null);
+        int index = -1;
+        for (int i = 0; i < all.size(); i++) if (all.get(i).id.equals(current)) index = i;
+        assign(ctx, widgetId, all.get((index + 1) % all.size()).id);
+    }
+
     static synchronized void forget(Context ctx, int widgetId) {
         prefs(ctx).edit().remove(KEY_WIDGET + widgetId).apply();
     }
