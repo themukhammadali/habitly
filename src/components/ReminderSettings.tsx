@@ -37,7 +37,7 @@ export default function ReminderSettings() {
   if (!remindersSupported() || notifications === null) return null
 
   return (
-    <div className="divide-y divide-black/5 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/5 dark:divide-white/5 dark:bg-neutral-900 dark:ring-white/5">
+    <div className="space-y-0.5 overflow-hidden rounded-2xl">
       <Row
         title="Notifications"
         detail={notifications ? 'Allowed' : 'Needed for reminders'}
@@ -80,7 +80,7 @@ export default function ReminderSettings() {
 
 function Row({ title, detail, ok, action }: { title: string; detail: string; ok: boolean; action: React.ReactNode }) {
   return (
-    <div className="flex items-center gap-3 px-4 py-3">
+    <div className="flex items-center gap-3 bg-container px-4 py-3">
       <span className={`h-2 w-2 shrink-0 rounded-full ${ok ? 'bg-emerald-500' : 'bg-amber-500'}`} />
       <div className="min-w-0 flex-1">
         <div className="text-sm font-medium text-neutral-900 dark:text-neutral-50">{title}</div>

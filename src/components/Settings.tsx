@@ -66,17 +66,13 @@ export default function Settings() {
     <div className="space-y-6 px-4 py-4">
       <div>
         <SectionLabel>Appearance</SectionLabel>
-        <div className="flex gap-2 rounded-2xl bg-white p-1.5 shadow-sm ring-1 ring-black/5 dark:bg-neutral-900 dark:ring-white/5">
+        <div className="flex gap-2 rounded-2xl bg-container p-1.5">
           {OPTIONS.map((o) => (
             <button
               key={o.key}
               type="button"
               onClick={() => setTheme(o.key)}
-              className={`flex-1 rounded-xl py-2 text-sm font-medium transition ${
-                theme === o.key
-                  ? 'bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900'
-                  : 'text-neutral-500'
-              }`}
+              className={`flex-1 rounded-xl py-2 text-sm font-medium transition ${theme === o.key ? 'bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900' : 'text-neutral-500' }`}
             >
               {o.label}
             </button>
@@ -94,7 +90,7 @@ export default function Settings() {
       {widgetSupported() && (
         <div>
           <SectionLabel>Home screen widget</SectionLabel>
-          <p className="rounded-2xl bg-white p-4 text-sm text-neutral-500 shadow-sm ring-1 ring-black/5 dark:bg-neutral-900 dark:ring-white/5">
+          <p className="rounded-2xl bg-container p-4 text-sm text-neutral-500">
             Each widget shows one habit with its heatmap. Open a habit and tap{' '}
             <span className="font-medium text-neutral-700 dark:text-neutral-300">Add to home screen</span>, or long-press
             your home screen, tap Widgets, and choose Habitly.
@@ -116,14 +112,14 @@ export default function Settings() {
           <button
             type="button"
             onClick={handleExport}
-            className="flex-1 rounded-2xl bg-white py-3 text-sm font-medium text-neutral-900 shadow-sm ring-1 ring-black/5 dark:bg-neutral-900 dark:text-neutral-50 dark:ring-white/5"
+            className="flex-1 rounded-2xl bg-container py-3 text-sm font-medium text-neutral-900 dark:text-neutral-50"
           >
             Export backup
           </button>
           <button
             type="button"
             onClick={() => fileInput.current?.click()}
-            className="flex-1 rounded-2xl bg-white py-3 text-sm font-medium text-neutral-900 shadow-sm ring-1 ring-black/5 dark:bg-neutral-900 dark:text-neutral-50 dark:ring-white/5"
+            className="flex-1 rounded-2xl bg-container py-3 text-sm font-medium text-neutral-900 dark:text-neutral-50"
           >
             Import backup
           </button>
@@ -145,9 +141,9 @@ export default function Settings() {
       {archived.length > 0 && (
         <div>
           <SectionLabel>Archived</SectionLabel>
-          <div className="divide-y divide-black/5 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/5 dark:divide-white/5 dark:bg-neutral-900 dark:ring-white/5">
+          <div className="space-y-0.5 overflow-hidden rounded-2xl">
             {archived.map((h) => (
-              <div key={h.id} className="flex items-center gap-3 px-4 py-3">
+              <div key={h.id} className="flex items-center gap-3 bg-container px-4 py-3">
                 <HabitIcon name={h.icon} className="h-5 w-5 shrink-0" style={{ color: colorHex(h.color) }} />
                 <span className="min-w-0 flex-1 truncate text-sm font-medium text-neutral-900 dark:text-neutral-50">
                   {h.name}
@@ -177,7 +173,7 @@ export default function Settings() {
 
       <div>
         <SectionLabel>About</SectionLabel>
-        <div className="rounded-2xl bg-white p-4 text-sm text-neutral-500 shadow-sm ring-1 ring-black/5 dark:bg-neutral-900 dark:ring-white/5">
+        <div className="rounded-2xl bg-container p-4 text-sm text-neutral-500">
           <div className="flex items-baseline justify-between">
             <p className="font-semibold text-neutral-900 dark:text-neutral-50">Habitly</p>
             <p className="text-xs text-neutral-400">Version {__APP_VERSION__}</p>
@@ -244,7 +240,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 function Box({ value, label }: { value: number; label: string }) {
   return (
-    <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5 dark:bg-neutral-900 dark:ring-white/5">
+    <div className="rounded-2xl bg-container p-4">
       <div className="text-2xl font-bold text-neutral-900 dark:text-neutral-50">
         {value}
       </div>

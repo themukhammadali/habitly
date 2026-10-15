@@ -80,7 +80,7 @@ export default function App() {
 
   return (
     <div className="mx-auto flex min-h-full max-w-md flex-col">
-      <header className="sticky top-0 z-20 bg-neutral-100/85 px-5 pb-3 pt-safe backdrop-blur-xl dark:bg-neutral-950/85">
+      <header className="sticky top-0 z-20 bg-surface/90 px-5 pb-3 pt-safe backdrop-blur-xl">
         <div className="flex items-center justify-between pt-3">
           <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50">
             {TITLES[tab]}
@@ -140,7 +140,7 @@ export default function App() {
         aria-label="Main"
         className="fixed inset-x-0 bottom-0 z-20 mx-auto flex max-w-md justify-center px-6 pb-safe"
       >
-        <div className="mb-4 flex w-full items-center justify-around rounded-full bg-white/90 px-2 py-2 shadow-lg ring-1 ring-black/5 backdrop-blur-xl dark:bg-neutral-900/90 dark:ring-white/10">
+        <div className="mb-4 flex w-full items-center justify-around rounded-full bg-container-high/95 px-2 py-2 shadow-lg backdrop-blur-xl">
           <TabButton active={tab === 'habits'} onClick={() => setTab('habits')} label="Habits" icon={CircleCheckBig} />
           <TabButton
             active={tab === 'analytics'}
@@ -157,7 +157,7 @@ export default function App() {
               setAdding(true)
             }}
             aria-label="Add habit"
-            className="flex h-12 w-12 items-center justify-center rounded-full bg-neutral-900 text-white shadow-md transition active:scale-90 dark:bg-neutral-100 dark:text-neutral-900"
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-neutral-900 text-white transition active:scale-90 dark:bg-neutral-100 dark:text-neutral-900"
           >
             <Plus className="h-6 w-6" strokeWidth={2.4} />
           </button>
@@ -309,9 +309,7 @@ function TabButton({
       onClick={onClick}
       aria-label={label}
       aria-current={active ? 'page' : undefined}
-      className={`flex h-12 w-14 flex-col items-center justify-center gap-0.5 rounded-full text-[10px] font-medium transition active:scale-90 ${
-        active ? 'text-neutral-900 dark:text-neutral-50' : 'text-neutral-400'
-      }`}
+      className={`flex h-12 w-14 flex-col items-center justify-center gap-0.5 rounded-full text-[10px] font-medium transition active:scale-90 ${active ? 'text-neutral-900 dark:text-neutral-50' : 'text-neutral-400' }`}
     >
       <Icon className="h-[22px] w-[22px]" strokeWidth={active ? 2.3 : 1.8} />
       {label}
@@ -403,7 +401,7 @@ function useApplyTheme(theme: string) {
     const apply = () => {
       const dark = theme === 'dark' || (theme === 'system' && mq.matches)
       root.classList.toggle('dark', dark)
-      const color = dark ? '#0a0a0a' : '#f5f5f7'
+      const color = dark ? '#0a0a0b' : '#f2f2f6'
       document.querySelector('meta[name="theme-color"]')?.setAttribute('content', color)
       if (Capacitor.isNativePlatform()) {
         StatusBar.setStyle({ style: dark ? Style.Dark : Style.Light }).catch(() => {})

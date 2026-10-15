@@ -133,11 +133,9 @@ export default function HabitEditor({
       role="dialog"
       aria-modal="true"
       aria-label={editing ? 'Edit habit' : 'New habit'}
-      className={`fixed inset-0 z-50 overflow-y-auto bg-neutral-100 dark:bg-neutral-950 no-scrollbar ${
-        closing ? 'animate-slide-out' : 'animate-slide-in'
-      }`}
+      className={`fixed inset-0 z-50 overflow-y-auto bg-surface no-scrollbar ${closing ? 'animate-slide-out' : 'animate-slide-in' }`}
     >
-      <header className="sticky top-0 z-10 flex items-center justify-between border-b border-black/5 bg-neutral-100/90 px-2 pb-2 pt-safe backdrop-blur-xl dark:border-white/5 dark:bg-neutral-950/90">
+      <header className="sticky top-0 z-10 flex items-center justify-between bg-surface/90 px-2 pb-2 pt-safe backdrop-blur-xl">
         <button
           type="button"
           onClick={requestClose}
@@ -186,7 +184,7 @@ export default function HabitEditor({
                     type="button"
                     onClick={() => applyTemplate(t)}
                     aria-pressed={selected}
-                    className="flex shrink-0 items-center gap-2 rounded-full bg-white py-2 pl-2 pr-3.5 text-sm font-medium text-neutral-800 shadow-sm ring-1 transition active:scale-95 dark:bg-neutral-900 dark:text-neutral-100"
+                    className="flex shrink-0 items-center gap-2 rounded-full bg-container py-2 pl-2 pr-3.5 text-sm font-medium text-neutral-800 transition active:scale-95 dark:text-neutral-100"
                     style={{ ['--tw-ring-color' as string]: selected ? c : 'rgba(0,0,0,0.06)' }}
                   >
                     <span className="flex h-7 w-7 items-center justify-center rounded-full" style={{ background: `${c}22` }}>
@@ -209,7 +207,7 @@ export default function HabitEditor({
               placeholder="Read 20 pages"
               maxLength={40}
               enterKeyHint="next"
-              className="w-full rounded-xl bg-neutral-100 px-3 py-2.5 text-neutral-900 outline-none dark:bg-neutral-800 dark:text-neutral-50"
+              className="w-full rounded-xl bg-container-high px-3 py-2.5 text-neutral-900 outline-none dark:text-neutral-50"
               style={{ caretColor: hex }}
             />
           </Field>
@@ -220,7 +218,7 @@ export default function HabitEditor({
               placeholder="Optional details"
               maxLength={60}
               enterKeyHint="done"
-              className="w-full rounded-xl bg-neutral-100 px-3 py-2.5 text-neutral-900 outline-none dark:bg-neutral-800 dark:text-neutral-50"
+              className="w-full rounded-xl bg-container-high px-3 py-2.5 text-neutral-900 outline-none dark:text-neutral-50"
               style={{ caretColor: hex }}
             />
           </Field>
@@ -292,7 +290,7 @@ export default function HabitEditor({
         </Card>
 
         {editing && habit && (
-          <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/5 dark:bg-neutral-900 dark:ring-white/5">
+          <div className="space-y-0.5 overflow-hidden rounded-2xl">
             <button
               type="button"
               onClick={() => {
@@ -300,7 +298,7 @@ export default function HabitEditor({
                 close()
                 showToast(`Archived “${habit.name}”`, { label: 'Undo', run: () => setArchived(habit.id, false) })
               }}
-              className="w-full border-b border-black/5 py-3.5 font-medium text-neutral-600 active:bg-black/5 dark:border-white/5 dark:text-neutral-300 dark:active:bg-white/5"
+              className="w-full bg-container py-3.5 font-medium text-neutral-600 active:bg-container-high dark:text-neutral-300"
             >
               Archive Habit
             </button>
@@ -311,7 +309,7 @@ export default function HabitEditor({
                 close()
                 showToast(`Deleted “${habit.name}”`, { label: 'Undo', run: () => restoreHabit(habit) })
               }}
-              className="w-full py-3.5 font-medium text-red-500 active:bg-red-500/10"
+              className="w-full bg-container py-3.5 font-medium text-red-500 active:bg-container-high"
             >
               Delete Habit
             </button>
@@ -324,7 +322,7 @@ export default function HabitEditor({
 
 function Card({ children }: { children: React.ReactNode }) {
   return (
-    <div className="space-y-5 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5 dark:bg-neutral-900 dark:ring-white/5">
+    <div className="space-y-5 rounded-2xl bg-container p-4">
       {children}
     </div>
   )
@@ -392,7 +390,7 @@ function ScheduleEditor({
       )}
 
       {schedule.kind === 'weekly' && (
-        <div className="flex items-center justify-between rounded-xl bg-neutral-100 px-3 py-2 dark:bg-neutral-800">
+        <div className="flex items-center justify-between rounded-xl bg-container-high px-3 py-2">
           <span className="text-sm text-neutral-700 dark:text-neutral-300">
             {schedule.times} {schedule.times === 1 ? 'time' : 'times'} a week, any days
           </span>
@@ -404,7 +402,7 @@ function ScheduleEditor({
                 aria-label={step < 0 ? 'Fewer times' : 'More times'}
                 disabled={schedule.times + step < 1 || schedule.times + step > 6}
                 onClick={() => onChange({ kind: 'weekly', times: schedule.times + step })}
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-lg font-semibold text-neutral-700 shadow-sm transition active:scale-90 disabled:opacity-30 dark:bg-neutral-700 dark:text-neutral-100"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-container-highest text-lg font-semibold text-neutral-700 transition active:scale-90 disabled:opacity-30 dark:text-neutral-100"
               >
                 {step < 0 ? '−' : '+'}
               </button>
@@ -445,7 +443,7 @@ function ReminderEditor({
       />
 
       {reminder.mode !== 'off' && (
-        <div className="space-y-2 rounded-xl bg-neutral-100 p-3 text-sm dark:bg-neutral-800">
+        <div className="space-y-2 rounded-xl bg-container-high p-3 text-sm">
           {reminder.mode === 'smart' && (
             <p className="text-neutral-600 dark:text-neutral-300">
               {habit && learned
@@ -461,7 +459,7 @@ function ReminderEditor({
                 const [h, m] = e.target.value.split(':').map(Number)
                 if (!Number.isNaN(h)) onChange({ ...reminder, time: h * 60 + m })
               }}
-              className="w-full rounded-lg bg-white px-3 py-2 text-neutral-900 outline-none dark:bg-neutral-700 dark:text-neutral-50"
+              className="w-full rounded-lg bg-container-highest px-3 py-2 text-neutral-900 outline-none dark:text-neutral-50"
             />
           )}
           {!remindersSupported() && (
@@ -494,7 +492,7 @@ function GoalEditor({
         onChange={(v) => onChange(v === 'check' ? undefined : (goal ?? { target: 8, unit: 'glasses', step: 1 }))}
       />
       {goal && (
-        <div className="space-y-3 rounded-xl bg-neutral-100 p-3 dark:bg-neutral-800">
+        <div className="space-y-3 rounded-xl bg-container-high p-3">
           <div className="flex gap-2">
             <NumberField
               label="Daily goal"
@@ -507,7 +505,7 @@ function GoalEditor({
                 value={goal.unit}
                 onChange={(e) => onChange({ ...goal, unit: e.target.value.slice(0, 20) })}
                 placeholder="glasses"
-                className="w-full rounded-lg bg-white px-3 py-2 text-neutral-900 outline-none dark:bg-neutral-700 dark:text-neutral-50"
+                className="w-full rounded-lg bg-container-highest px-3 py-2 text-neutral-900 outline-none dark:text-neutral-50"
               />
             </label>
           </div>
@@ -562,7 +560,7 @@ function NumberField({ label, value, onChange }: { label: string; value: number;
           setText(t)
           onChange(Number(t) || 0)
         }}
-        className="w-full rounded-lg bg-white px-3 py-2 tabular-nums text-neutral-900 outline-none dark:bg-neutral-700 dark:text-neutral-50"
+        className="w-full rounded-lg bg-container-highest px-3 py-2 tabular-nums text-neutral-900 outline-none dark:text-neutral-50"
       />
     </label>
   )
@@ -580,7 +578,7 @@ function Segmented<T extends string>({
   color: string
 }) {
   return (
-    <div className="flex gap-1 rounded-xl bg-neutral-100 p-1 dark:bg-neutral-800">
+    <div className="flex gap-1 rounded-xl bg-container-high p-1">
       {options.map((o) => (
         <button
           key={o.value}

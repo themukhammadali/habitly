@@ -45,7 +45,7 @@ export default function HabitCard({
 
   return (
     <div
-      className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5 transition active:scale-[0.99] dark:bg-neutral-900 dark:ring-white/5"
+      className="rounded-2xl bg-container p-4 transition active:scale-[0.99]"
       onClick={dragHandle ? undefined : onOpen}
       role={dragHandle ? undefined : 'button'}
     >

@@ -4,6 +4,17 @@
 
 :root {
   color-scheme: light dark;
+  --surface: 242 242 246;
+  --container: 255 255 255;
+  --container-high: 234 234 239;
+  --container-highest: 224 224 230;
+}
+
+html.dark {
+  --surface: 10 10 11;
+  --container: 28 28 30;
+  --container-high: 44 44 47;
+  --container-highest: 58 58 62;
 }
 
 html,
@@ -18,11 +29,7 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   overscroll-behavior-y: none;
-  background: #f5f5f7;
-}
-
-html.dark body {
-  background: #0a0a0a;
+  background: rgb(var(--surface));
 }
 
 /* Safe-area helpers for iOS notch / home indicator */

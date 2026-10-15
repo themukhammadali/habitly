@@ -135,9 +135,9 @@ export default function Analytics() {
 
       <div>
         <div className="mb-2 px-1 text-xs font-medium uppercase tracking-wide text-neutral-400">Habits · last 30 days</div>
-        <div className="divide-y divide-black/5 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/5 dark:divide-white/5 dark:bg-neutral-900 dark:ring-white/5">
+        <div className="space-y-0.5 overflow-hidden rounded-2xl">
           {perHabit.map((s) => (
-            <div key={s.habit.id} className="flex items-center gap-3 px-4 py-3">
+            <div key={s.habit.id} className="flex items-center gap-3 bg-container px-4 py-3">
               <IconBadge icon={s.habit.icon} color={s.habit.color} />
               <div className="min-w-0 flex-1">
                 <div className="flex items-baseline justify-between gap-2">
@@ -195,7 +195,7 @@ function IconBadge({ icon, color }: { icon: string; color: string }) {
 
 function Card({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5 dark:bg-neutral-900 dark:ring-white/5">{children}</div>
+    <div className="rounded-2xl bg-container p-4">{children}</div>
   )
 }
 

@@ -60,9 +60,9 @@ export default function HabitDetail({
   const learned = predict(habit.completionTimes, todayKey())
 
   return (
-    <div className="fixed inset-0 z-40 animate-fade-in overflow-y-auto bg-neutral-100 dark:bg-neutral-950 no-scrollbar">
+    <div className="fixed inset-0 z-40 animate-fade-in overflow-y-auto bg-surface no-scrollbar">
       {/* Header */}
-      <div className="sticky top-0 z-10 flex items-center justify-between border-b border-black/5 bg-neutral-100/90 px-3 py-3 pt-safe backdrop-blur dark:border-white/5 dark:bg-neutral-950/90">
+      <div className="sticky top-0 z-10 flex items-center justify-between bg-surface/90 px-3 py-3 pt-safe backdrop-blur">
         <button
           type="button"
           onClick={onClose}
@@ -178,7 +178,7 @@ export default function HabitDetail({
                 showToast('Long-press your home screen, tap Widgets, and choose Habitly.')
               }
             }}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-white py-3.5 text-sm font-semibold shadow-sm ring-1 ring-black/5 active:scale-[0.99] dark:bg-neutral-900 dark:ring-white/5"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-container py-3.5 text-sm font-semibold active:scale-[0.99]"
             style={{ color: hex }}
           >
             <LayoutGrid className="h-4 w-4" />
@@ -210,7 +210,7 @@ export default function HabitDetail({
 
 function Card({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5 dark:bg-neutral-900 dark:ring-white/5">
+    <div className="rounded-2xl bg-container p-4">
       {children}
     </div>
   )
@@ -234,7 +234,7 @@ function Stat({
   color: string
 }) {
   return (
-    <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5 dark:bg-neutral-900 dark:ring-white/5">
+    <div className="rounded-2xl bg-container p-4">
       <div className="text-2xl font-bold" style={{ color }}>
         {value}
       </div>
