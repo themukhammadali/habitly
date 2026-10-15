@@ -161,7 +161,7 @@ export default function HabitEditor({
         {/* Preview */}
         <div className="flex flex-col items-center text-center">
           <div
-            className="flex h-20 w-20 items-center justify-center rounded-3xl transition-colors"
+            className="flex h-20 w-20 items-center justify-center rounded-full transition-colors"
             style={{ background: `${hex}22` }}
           >
             <HabitIcon name={icon} className="h-10 w-10" style={{ color: hex }} />
@@ -235,7 +235,7 @@ export default function HabitEditor({
                   onClick={() => setIcon(key)}
                   aria-label={key}
                   aria-pressed={icon === key}
-                  className={`flex aspect-square items-center justify-center transition-all duration-300 ease-spring active:scale-90 ${icon === key ? 'rounded-full' : 'rounded-2xl'}`}
+                  className={`flex aspect-square items-center justify-center transition-all duration-300 ease-spring active:scale-90 ${icon === key ? 'rounded-[50%]' : 'rounded-2xl'}`}
                   style={{
                     background: icon === key ? `${hex}26` : 'rgb(var(--container-high))',
                     outline: icon === key ? `2px solid ${hex}` : 'none',
@@ -377,7 +377,7 @@ function ScheduleEditor({
                   if (days.length === 0) return
                   onChange(days.length === 7 ? { kind: 'daily' } : { kind: 'weekdays', days })
                 }}
-                className={`flex h-11 flex-1 items-center justify-center text-xs font-bold transition-all duration-300 ease-spring active:scale-90 ${on ? 'rounded-full' : 'rounded-2xl'}`}
+                className={`flex h-11 flex-1 items-center justify-center text-xs font-bold transition-all duration-300 ease-spring active:scale-90 ${on ? 'rounded-[22px]' : 'rounded-2xl'}`}
                 style={{
                   background: on ? color : 'rgb(var(--container-high))',
                   color: on ? '#fff' : undefined,

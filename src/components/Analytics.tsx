@@ -187,7 +187,7 @@ function Change({ value, suffix }: { value: number | null; suffix: string }) {
 function IconBadge({ icon, color }: { icon: string; color: string }) {
   const hex = colorHex(color)
   return (
-    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-tile" style={{ background: `${hex}22` }}>
+    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full" style={{ background: `${hex}22` }}>
       <HabitIcon name={icon} className="h-[18px] w-[18px]" style={{ color: hex }} />
     </div>
   )

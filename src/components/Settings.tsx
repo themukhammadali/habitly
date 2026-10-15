@@ -92,7 +92,7 @@ export default function Settings() {
                 <span
                   data-palette={p.key}
                   className={`flex h-12 w-12 items-center justify-center rounded-[18px] transition-all duration-300 ease-spring ${
-                    palette === p.key ? 'scale-110 rounded-full' : ''
+                    palette === p.key ? 'scale-110 rounded-[50%]' : ''
                   }`}
                   style={{ background: p.swatch[0] }}
                 >

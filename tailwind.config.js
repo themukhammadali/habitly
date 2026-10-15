@@ -12,7 +12,6 @@ export default {
       },
       borderRadius: {
         card: '28px',
-        tile: '14px',
       },
       colors: {
         surface: 'rgb(var(--surface) / <alpha-value>)',

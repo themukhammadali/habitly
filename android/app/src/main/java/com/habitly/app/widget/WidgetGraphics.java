@@ -27,15 +27,14 @@ final class WidgetGraphics {
         return Color.argb(Math.round(alpha * 255), Color.red(color), Color.green(color), Color.blue(color));
     }
 
-    /** The habit's icon in its color, on a soft tile of the same color (like the app). */
+    /** The habit's icon in its color, on a soft circle of the same color (like the app). */
     static Bitmap iconTile(Context ctx, String icon, int color) {
         int size = Math.round(dp(ctx, 40));
         Bitmap bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bmp);
         Paint bg = new Paint(Paint.ANTI_ALIAS_FLAG);
         bg.setColor(withAlpha(color, 0.16f));
-        float radius = dp(ctx, 10);
-        canvas.drawRoundRect(new RectF(0, 0, size, size), radius, radius, bg);
+        canvas.drawCircle(size / 2f, size / 2f, size / 2f, bg);
 
         int res = ctx.getResources().getIdentifier("widget_icon_" + icon.replace('-', '_'), "drawable", ctx.getPackageName());
         if (res == 0) res = ctx.getResources().getIdentifier("widget_icon_target", "drawable", ctx.getPackageName());
