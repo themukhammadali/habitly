@@ -1,6 +1,7 @@
 import type { Habit } from '../types'
 import { addDaysKey, formatTime, fromKey, todayKey } from './dates'
 import { predict } from './predict'
+import { formatAmount } from './measure'
 import { doneInWeek, isDue } from './schedule'
 
 /** How many days ahead reminders are scheduled. Re-planned whenever the app runs. */
@@ -46,9 +47,16 @@ export function planReminders(habits: Habit[], now = new Date()): PlannedReminde
         day,
         at,
         title: h.name,
-        body: usual !== null
-          ? `You usually do this around ${formatTime(usual)}.`
-          : h.description || 'Time to keep your streak going.',
+        body: [
+          h.goal ? `Goal: ${formatAmount(h.goal.target)} ${h.goal.unit}.`.replace(' .', '.') : '',
+          usual !== null
+            ? `You usually ${h.goal ? 'finish' : 'do this'} around ${formatTime(usual)}.`
+            : h.goal
+              ? ''
+              : h.description || 'Time to keep your streak going.',
+        ]
+          .filter(Boolean)
+          .join(' '),
       })
     }
   }

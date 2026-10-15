@@ -3,6 +3,7 @@
 
 import type { Habit } from '../types'
 import { addDaysKey, todayKey } from './dates'
+import { amountBetween } from './measure'
 import { currentStreak, isDue, progressBetween, streakUnit, weekStartKey, weekday, type Progress } from './schedule'
 
 const pct = ({ due, done }: Progress) => (due ? Math.round((done / due) * 100) : null)
@@ -111,13 +112,16 @@ export interface HabitStat {
   change: number | null
   streak: number
   streakUnit: 'day' | 'week'
+  /** Measurable habits: average amount per scheduled day over the last 30 days. */
+  average: number | null
 }
 
 /** Per-habit numbers, weakest first so slipping habits stand out. */
 export function habitStats(habits: Habit[], today = todayKey()): HabitStat[] {
   return habits
     .map((h) => {
-      const rate = pct(progressBetween(h, addDaysKey(today, -29), today, today))
+      const window = progressBetween(h, addDaysKey(today, -29), today, today)
+      const rate = pct(window)
       const before = pct(progressBetween(h, addDaysKey(today, -59), addDaysKey(today, -30), today))
       return {
         habit: h,
@@ -125,6 +129,10 @@ export function habitStats(habits: Habit[], today = todayKey()): HabitStat[] {
         change: rate !== null && before !== null ? rate - before : null,
         streak: currentStreak(h, today),
         streakUnit: streakUnit(h.schedule),
+        average:
+          h.goal && h.schedule.kind !== 'weekly' && window.due
+            ? Math.round((amountBetween(h, addDaysKey(today, -29), today) / window.due) * 10) / 10
+            : null,
       }
     })
     .sort((a, b) => (a.rate ?? 101) - (b.rate ?? 101))

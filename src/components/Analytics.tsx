@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useStore } from '../store'
 import { colorHex } from '../lib/palette'
+import { formatAmount } from '../lib/measure'
 import { HabitIcon } from '../lib/icons'
 import { WEEKDAYS_SHORT, fromKey } from '../lib/dates'
 import { DAY_PARTS, habitStats, timeOfDay, weekSummary, weekdayRates, weeklyTrend } from '../lib/stats'
@@ -151,6 +152,7 @@ export default function Analytics() {
                 <div className="mt-1 flex justify-between text-[11px] text-neutral-400">
                   <span>
                     {s.streak} {s.streakUnit}{s.streak === 1 ? '' : 's'} streak
+                    {s.average !== null && s.habit.goal && ` · avg ${formatAmount(s.average)} ${s.habit.goal.unit}/day`}
                   </span>
                   <Change value={s.change} suffix=" pts" />
                 </div>

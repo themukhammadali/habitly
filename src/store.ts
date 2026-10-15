@@ -3,8 +3,11 @@ import { persist } from 'zustand/middleware'
 import type { Habit, Settings } from './types'
 import { minutesOfDay, todayKey } from './lib/dates'
 import { normalizeHabit } from './lib/migrate'
+import { applyGoal, setAmount as setHabitAmount, toggleDay as toggleHabitDay } from './lib/measure'
 
-export type NewHabit = Pick<Habit, 'name' | 'description' | 'icon' | 'color' | 'schedule' | 'reminder'>
+const clock = () => ({ today: todayKey(), minutes: minutesOfDay() })
+
+export type NewHabit = Pick<Habit, 'name' | 'description' | 'icon' | 'color' | 'schedule' | 'reminder' | 'goal'>
 
 interface State {
   habits: Habit[]
@@ -15,6 +18,8 @@ interface State {
   /** Puts back a habit removed by deleteHabit, at its old position. */
   restoreHabit: (h: Habit) => void
   toggleDay: (id: string, dayKey: string) => void
+  /** Measurable habits: set the amount logged on a day. */
+  setAmount: (id: string, dayKey: string, amount: number) => void
   setArchived: (id: string, archived: boolean) => void
   reorder: (ids: string[]) => void
   setTheme: (theme: Settings['theme']) => void
@@ -40,6 +45,7 @@ export const useStore = create<State>()(
               id: uid(),
               createdAt: todayKey(),
               completions: {},
+              amounts: {},
               completionTimes: {},
               order: s.habits.length,
             },
@@ -48,7 +54,14 @@ export const useStore = create<State>()(
 
       updateHabit: (id, patch) =>
         set((s) => ({
-          habits: s.habits.map((h) => (h.id === id ? { ...h, ...patch } : h)),
+          habits: s.habits.map((h) => {
+            if (h.id !== id) return h
+            const next = { ...h, ...patch }
+            // A changed goal (or switching measurable on/off) re-derives done days.
+            return 'goal' in patch && JSON.stringify(patch.goal) !== JSON.stringify(h.goal)
+              ? applyGoal({ ...next, goal: h.goal }, patch.goal)
+              : next
+          }),
         })),
 
       deleteHabit: (id) =>
@@ -63,20 +76,12 @@ export const useStore = create<State>()(
 
       toggleDay: (id, dayKey) =>
         set((s) => ({
-          habits: s.habits.map((h) => {
-            if (h.id !== id) return h
-            const completions = { ...h.completions }
-            const completionTimes = { ...h.completionTimes }
-            if (completions[dayKey]) {
-              delete completions[dayKey]
-              delete completionTimes[dayKey]
-            } else {
-              completions[dayKey] = true
-              // Only a tick on the day itself says when the habit is usually done.
-              if (dayKey === todayKey()) completionTimes[dayKey] = minutesOfDay()
-            }
-            return { ...h, completions, completionTimes }
-          }),
+          habits: s.habits.map((h) => (h.id === id ? toggleHabitDay(h, dayKey, clock()) : h)),
+        })),
+
+      setAmount: (id, dayKey, amount) =>
+        set((s) => ({
+          habits: s.habits.map((h) => (h.id === id ? setHabitAmount(h, dayKey, amount, clock()) : h)),
         })),
 
       setArchived: (id, archived) =>
@@ -103,11 +108,12 @@ export const useStore = create<State>()(
     }),
     {
       name: 'habitly-v1',
-      version: 1,
-      // v0 → v1: emoji icons became icon keys; schedules, reminders and completion times were added.
+      version: 2,
+      // v1: emoji icons became icon keys; schedules, reminders and completion times were added.
+      // v2: measurable habits (goal, amounts). normalizeHabit upgrades any older version.
       migrate: (persisted, version) => {
         const state = persisted as { habits?: unknown[]; settings?: Settings }
-        if (version < 1) {
+        if (version < 2) {
           state.habits = (state.habits ?? []).map((h, i) => normalizeHabit(h, i))
         }
         return state as State

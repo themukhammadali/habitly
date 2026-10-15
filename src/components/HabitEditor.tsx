@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ChevronLeft } from 'lucide-react'
-import type { Habit, Reminder, Schedule } from '../types'
+import type { Goal, Habit, Reminder, Schedule } from '../types'
 import { PALETTE, colorHex } from '../lib/palette'
 import { DEFAULT_ICON, HabitIcon, ICONS } from '../lib/icons'
 import { WEEKDAYS_SHORT, formatTime, todayKey } from '../lib/dates'
@@ -22,15 +22,18 @@ interface Template {
   schedule: Schedule
   /** Reminder time in minutes, or null for a smart reminder. */
   remindAt: number | null
+  goal?: Goal
 }
 
+const UNIT_SUGGESTIONS = ['glasses', 'pages', 'minutes', 'km', 'steps', 'times']
+
 const TEMPLATES: Template[] = [
-  { name: 'Drink water', icon: 'glass-water', color: 'blue', schedule: { kind: 'daily' }, remindAt: null },
-  { name: 'Read', icon: 'book', color: 'violet', schedule: { kind: 'daily' }, remindAt: null },
+  { name: 'Drink water', icon: 'glass-water', color: 'blue', schedule: { kind: 'daily' }, remindAt: null, goal: { target: 8, unit: 'glasses', step: 1 } },
+  { name: 'Read', icon: 'book', color: 'violet', schedule: { kind: 'daily' }, remindAt: null, goal: { target: 20, unit: 'pages', step: 5 } },
   { name: 'Workout', icon: 'dumbbell', color: 'red', schedule: { kind: 'weekly', times: 3 }, remindAt: null },
   { name: 'Meditate', icon: 'flower', color: 'teal', schedule: { kind: 'daily' }, remindAt: null },
   { name: 'Sleep early', icon: 'moon', color: 'indigo', schedule: { kind: 'daily' }, remindAt: 21 * 60 + 30 },
-  { name: 'Walk', icon: 'footprints', color: 'amber', schedule: { kind: 'daily' }, remindAt: null },
+  { name: 'Walk', icon: 'footprints', color: 'amber', schedule: { kind: 'daily' }, remindAt: null, goal: { target: 30, unit: 'minutes', step: 5 } },
   { name: 'Journal', icon: 'pen', color: 'sand', schedule: { kind: 'daily' }, remindAt: 21 * 60 },
   { name: 'No phone in bed', icon: 'no-phone', color: 'slate', schedule: { kind: 'daily' }, remindAt: 22 * 60 },
 ]
@@ -60,6 +63,7 @@ export default function HabitEditor({
       color: habit?.color ?? PALETTE[0].key,
       schedule: habit?.schedule ?? ({ kind: 'daily' } as Schedule),
       reminder: habit?.reminder ?? ({ mode: canRemind ? 'smart' : 'off', time: 9 * 60 } as Reminder),
+      goal: habit?.goal,
     }),
     [habit, canRemind],
   )
@@ -69,12 +73,13 @@ export default function HabitEditor({
   const [color, setColor] = useState(initial.color)
   const [schedule, setSchedule] = useState<Schedule>(initial.schedule)
   const [reminder, setReminder] = useState<Reminder>(initial.reminder)
+  const [goal, setGoal] = useState<Goal | undefined>(initial.goal)
   const [allIcons, setAllIcons] = useState(false)
   const [closing, setClosing] = useState(false)
 
   const hex = colorHex(color)
-  const canSave = name.trim().length > 0
-  const fields = { name: name.trim(), description: description.trim(), icon, color, schedule, reminder }
+  const canSave = name.trim().length > 0 && (!goal || (goal.target > 0 && goal.step > 0))
+  const fields = { name: name.trim(), description: description.trim(), icon, color, schedule, reminder, goal }
   const dirty =
     JSON.stringify(fields) !==
     JSON.stringify({ ...initial, name: initial.name.trim(), description: initial.description.trim() })
@@ -102,6 +107,7 @@ export default function HabitEditor({
   }
 
   function applyTemplate(t: Template) {
+    setGoal(t.goal)
     setName(t.name)
     setIcon(t.icon)
     setColor(t.color)
@@ -267,6 +273,12 @@ export default function HabitEditor({
                 />
               ))}
             </div>
+          </Field>
+        </Card>
+
+        <Card>
+          <Field label="Track">
+            <GoalEditor goal={goal} onChange={setGoal} color={hex} />
           </Field>
         </Card>
 
@@ -458,6 +470,101 @@ function ReminderEditor({
         </div>
       )}
     </div>
+  )
+}
+
+function GoalEditor({
+  goal,
+  onChange,
+  color,
+}: {
+  goal: Goal | undefined
+  onChange: (g: Goal | undefined) => void
+  color: string
+}) {
+  return (
+    <div className="space-y-3">
+      <Segmented
+        color={color}
+        value={goal ? 'amount' : 'check'}
+        options={[
+          { value: 'check', label: 'Done / not done' },
+          { value: 'amount', label: 'An amount' },
+        ]}
+        onChange={(v) => onChange(v === 'check' ? undefined : (goal ?? { target: 8, unit: 'glasses', step: 1 }))}
+      />
+      {goal && (
+        <div className="space-y-3 rounded-xl bg-neutral-100 p-3 dark:bg-neutral-800">
+          <div className="flex gap-2">
+            <NumberField
+              label="Daily goal"
+              value={goal.target}
+              onChange={(target) => onChange({ ...goal, target })}
+            />
+            <label className="flex-1">
+              <span className="mb-1 block text-xs text-neutral-500">Unit</span>
+              <input
+                value={goal.unit}
+                onChange={(e) => onChange({ ...goal, unit: e.target.value.slice(0, 20) })}
+                placeholder="glasses"
+                className="w-full rounded-lg bg-white px-3 py-2 text-neutral-900 outline-none dark:bg-neutral-700 dark:text-neutral-50"
+              />
+            </label>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {UNIT_SUGGESTIONS.map((u) => (
+              <button
+                key={u}
+                type="button"
+                onClick={() => onChange({ ...goal, unit: u })}
+                aria-pressed={goal.unit === u}
+                className="rounded-full px-2.5 py-1 text-xs font-medium transition active:scale-95"
+                style={
+                  goal.unit === u
+                    ? { background: color, color: '#fff' }
+                    : { background: 'rgba(120,120,128,0.14)', color: 'rgb(115 115 115)' }
+                }
+              >
+                {u}
+              </button>
+            ))}
+          </div>
+          <NumberField
+            label="Each + and − changes it by"
+            value={goal.step}
+            onChange={(step) => onChange({ ...goal, step })}
+          />
+          <p className="text-xs text-neutral-400">
+            The day counts as done once you reach {goal.target || '…'} {goal.unit}.
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/** A positive number input that tolerates being cleared while typing. */
+function NumberField({ label, value, onChange }: { label: string; value: number; onChange: (n: number) => void }) {
+  const [text, setText] = useState(String(value))
+  // Follow outside changes (e.g. a template), but not while the typed text already means this value.
+  useEffect(() => {
+    if (Number(text) !== value) setText(String(value))
+  }, [value]) // eslint-disable-line react-hooks/exhaustive-deps
+  return (
+    <label className="flex-1">
+      <span className="mb-1 block text-xs text-neutral-500">{label}</span>
+      <input
+        inputMode="decimal"
+        value={text}
+        onChange={(e) => {
+          const t = e.target.value.replace(',', '.')
+          if (!/^\d*\.?\d{0,2}$/.test(t)) return
+          setText(t)
+          onChange(Number(t) || 0)
+        }}
+        className="w-full rounded-lg bg-white px-3 py-2 tabular-nums text-neutral-900 outline-none dark:bg-neutral-700 dark:text-neutral-50"
+      />
+    </label>
   )
 }
 

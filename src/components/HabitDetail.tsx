@@ -8,6 +8,9 @@ import { predict } from '../lib/predict'
 import { reminderTime } from '../lib/reminders'
 import { todayKey } from '../lib/dates'
 import { useBackHandler } from '../hooks/useBackHandler'
+import { amountBetween, formatAmount, partialDays, usualAmount } from '../lib/measure'
+import { fromKey } from '../lib/dates'
+import { weekStartKey } from '../lib/schedule'
 import { useStore } from '../store'
 import YearGrid from './YearGrid'
 import CalendarMonth from './CalendarMonth'
@@ -22,6 +25,18 @@ export default function HabitDetail({
   onClose: () => void
 }) {
   const toggleDay = useStore((s) => s.toggleDay)
+  const setAmount = useStore((s) => s.setAmount)
+  const goal = habit.goal
+
+  /** Tapping a day: ticks it, or for measurable habits asks for the exact amount. */
+  function editDay(day: string) {
+    if (!goal) return toggleDay(habit.id, day)
+    const label = fromKey(day).toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' })
+    const answer = window.prompt(`${goal.unit || 'Amount'} on ${label}`, formatAmount(habit.amounts[day] ?? 0))
+    if (answer === null) return
+    const value = Number(answer.replace(',', '.'))
+    if (Number.isFinite(value) && value >= 0) setAmount(habit.id, day, value)
+  }
   const [editing, setEditing] = useState(false)
   const hex = colorHex(habit.color)
 
@@ -35,6 +50,8 @@ export default function HabitDetail({
   const best = bestStreak(habit)
   const rate = completionRate(habit)
   const total = Object.keys(habit.completions).length
+  const usual = goal ? usualAmount(habit, todayKey()) : null
+  const weekTotal = goal ? amountBetween(habit, weekStartKey(todayKey()), todayKey()) : 0
   const unit = streakUnit(habit.schedule) === 'week' ? 'Weeks' : 'Days'
   const learned = predict(habit.completionTimes, todayKey())
 
@@ -93,7 +110,8 @@ export default function HabitDetail({
                 createdAt={habit.createdAt}
                 weeks={53}
                 showMonths
-                onToggleDay={(k) => toggleDay(habit.id, k)}
+                onToggleDay={editDay}
+                partial={goal ? partialDays(habit) : undefined}
               />
             </div>
           </div>
@@ -105,6 +123,12 @@ export default function HabitDetail({
           <Stat value={best} label={`Best Streak (${unit})`} color={hex} />
           <Stat value={`${rate}%`} label="Completion" color={hex} />
           <Stat value={total} label="Total Days" color={hex} />
+          {goal && (
+            <>
+              <Stat value={usual === null ? '—' : formatAmount(usual)} label={`Usually (${goal.unit || 'per day'})`} color={hex} />
+              <Stat value={formatAmount(weekTotal)} label={`This week (${goal.unit || 'total'})`} color={hex} />
+            </>
+          )}
         </div>
 
         {/* What the smart reminder has learned */}
@@ -137,7 +161,8 @@ export default function HabitDetail({
             completions={habit.completions}
             color={hex}
             createdAt={habit.createdAt}
-            onToggleDay={(k) => toggleDay(habit.id, k)}
+            onToggleDay={editDay}
+            partial={goal ? partialDays(habit) : undefined}
           />
         </Card>
 

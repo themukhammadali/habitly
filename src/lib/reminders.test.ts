@@ -14,6 +14,7 @@ function habit(patch: Partial<Habit>): Habit {
     color: 'emerald',
     createdAt: '2026-09-01',
     completions: {},
+    amounts: {},
     completionTimes: {},
     schedule: { kind: 'daily' },
     reminder: { mode: 'fixed', time: 9 * 60 },

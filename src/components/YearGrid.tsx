@@ -8,6 +8,8 @@ interface Props {
   weeks?: number
   onToggleDay?: (key: string) => void
   showMonths?: boolean
+  /** Measurable habits: fraction of the goal reached per day, shown as a lighter dot. */
+  partial?: Record<string, number>
 }
 
 interface Cell {
@@ -15,6 +17,8 @@ interface Cell {
   inRange: boolean // between createdAt and today
   future: boolean
   done: boolean
+  /** 0–1 of the goal reached, for measurable habits' unfinished days. */
+  partial: number
 }
 
 /**
@@ -28,6 +32,7 @@ export default function YearGrid({
   weeks = 18,
   onToggleDay,
   showMonths = false,
+  partial,
 }: Props) {
   const { columns, monthLabels } = useMemo(() => {
     const today = new Date()
@@ -48,7 +53,7 @@ export default function YearGrid({
         const key = toKey(date)
         const inRange =
           key <= tKey && (!createdAt || key >= createdAt)
-        col.push({ key, inRange, future: key > tKey, done: !!completions[key] })
+        col.push({ key, inRange, future: key > tKey, done: !!completions[key], partial: partial?.[key] ?? 0 })
       }
       const colIndex = weeks - 1 - w
       const m = weekStart.getMonth()
@@ -66,7 +71,7 @@ export default function YearGrid({
       cols.push(col)
     }
     return { columns: cols, monthLabels: labels }
-  }, [completions, createdAt, weeks])
+  }, [completions, createdAt, weeks, partial])
 
   return (
     <div className="w-full">
@@ -124,7 +129,9 @@ function Dot({
       ? color
       : !cell.inRange
         ? 'rgba(120,120,128,0.07)' // before the habit existed
-        : 'rgba(120,120,128,0.16)'
+        : cell.partial > 0
+          ? `color-mix(in srgb, ${color} ${Math.round(25 + cell.partial * 45)}%, transparent)`
+          : 'rgba(120,120,128,0.16)'
 
   return (
     <button

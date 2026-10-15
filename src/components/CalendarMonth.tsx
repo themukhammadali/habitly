@@ -6,11 +6,14 @@ export default function CalendarMonth({
   color,
   createdAt,
   onToggleDay,
+  partial,
 }: {
   completions: Record<string, true>
   color: string
   createdAt: string
   onToggleDay: (key: string) => void
+  /** Measurable habits: fraction of the goal reached on unfinished days. */
+  partial?: Record<string, number>
 }) {
   const now = new Date()
   const [year, setYear] = useState(now.getFullYear())
@@ -77,7 +80,11 @@ export default function CalendarMonth({
               onClick={() => onToggleDay(key)}
               className="relative flex aspect-square items-center justify-center rounded-full text-sm transition active:scale-90 disabled:opacity-25"
               style={{
-                background: done ? color : 'transparent',
+                background: done
+                  ? color
+                  : partial?.[key]
+                    ? `color-mix(in srgb, ${color} ${Math.round(15 + partial[key] * 35)}%, transparent)`
+                    : 'transparent',
                 color: done ? '#fff' : undefined,
                 outline: isToday && !done ? `1.5px solid ${color}` : 'none',
                 outlineOffset: '-1.5px',

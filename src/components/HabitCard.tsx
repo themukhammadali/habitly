@@ -4,6 +4,9 @@ import { HabitIcon } from '../lib/icons'
 import { currentStreak, doneInWeek, isDue, scheduleLabel, streakUnit } from '../lib/schedule'
 import { tapFeedback } from '../lib/haptics'
 import YearGrid from './YearGrid'
+import AmountControl from './AmountControl'
+import { formatAmount, partialDays, usualAmount } from '../lib/measure'
+import { todayKey } from '../lib/dates'
 import { useStore } from '../store'
 
 export default function HabitCard({
@@ -26,8 +29,15 @@ export default function HabitCard({
   const streak = currentStreak(habit)
   const unit = streakUnit(habit.schedule)
 
+  const goal = habit.goal
+  const usual = goal ? usualAmount(habit, todayKey()) : null
   const subtitle =
-    habit.schedule.kind === 'weekly'
+    goal && due
+      ? // Before anything is logged, the usual amount is the useful hint; after, progress is.
+        !habit.amounts[day] && usual !== null
+        ? `usually ${formatAmount(usual)} ${goal.unit}`
+        : `${formatAmount(habit.amounts[day] ?? 0)}/${formatAmount(goal.target)} ${goal.unit}`
+      : habit.schedule.kind === 'weekly'
       ? `${Math.min(doneInWeek(habit.completions, day), habit.schedule.times)}/${habit.schedule.times} this week`
       : !due
         ? 'Not scheduled'
@@ -47,7 +57,9 @@ export default function HabitCard({
           <div className="truncate font-semibold text-neutral-900 dark:text-neutral-50">{habit.name}</div>
           {subtitle && <div className="truncate text-sm text-neutral-400">{subtitle}</div>}
         </div>
-        {dragHandle ?? (
+        {dragHandle ?? (goal ? (
+          <AmountControl habit={habit} day={day} color={hex} />
+        ) : (
           <button
             type="button"
             onClick={(e) => {
@@ -70,13 +82,19 @@ export default function HabitCard({
               <PlusIcon className="h-5 w-5" style={{ color: hex }} />
             )}
           </button>
-        )}
+        ))}
       </div>
 
       {!dragHandle && (
         <>
           <div className="mt-3">
-            <YearGrid completions={habit.completions} color={hex} createdAt={habit.createdAt} weeks={20} />
+            <YearGrid
+              completions={habit.completions}
+              color={hex}
+              createdAt={habit.createdAt}
+              weeks={20}
+              partial={goal ? partialDays(habit) : undefined}
+            />
           </div>
           {streak > 0 && (
             <div className="mt-2 flex items-center gap-1 text-xs font-medium text-neutral-400">

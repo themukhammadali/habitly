@@ -1,4 +1,4 @@
-import type { Habit, Reminder, Schedule } from '../types'
+import type { Goal, Habit, Reminder, Schedule } from '../types'
 import { todayKey } from './dates'
 import { normalizeIcon } from './icons'
 import { PALETTE } from './palette'
@@ -16,9 +16,21 @@ export function normalizeHabit(raw: unknown, index: number): Habit {
     throw new Error('This backup is damaged and cannot be imported.')
   }
 
+  const goal = normalizeGoal(x.goal)
+  const amounts: Record<string, number> = {}
+  if (goal) {
+    for (const [day, v] of Object.entries(x.amounts ?? {})) {
+      if (DAY_KEY.test(day) && typeof v === 'number' && Number.isFinite(v) && v > 0) amounts[day] = v
+    }
+  }
   const completions: Record<string, true> = {}
-  for (const [day, done] of Object.entries(x.completions ?? {})) {
-    if (done === true && DAY_KEY.test(day)) completions[day] = true
+  if (goal) {
+    // Derived from amounts, so the two can never disagree.
+    for (const [day, v] of Object.entries(amounts)) if (v >= goal.target) completions[day] = true
+  } else {
+    for (const [day, done] of Object.entries(x.completions ?? {})) {
+      if (done === true && DAY_KEY.test(day)) completions[day] = true
+    }
   }
   const completionTimes: Record<string, number> = {}
   for (const [day, t] of Object.entries(x.completionTimes ?? {})) {
@@ -33,11 +45,24 @@ export function normalizeHabit(raw: unknown, index: number): Habit {
     color: PALETTE.some((c) => c.key === x.color) ? (x.color as string) : PALETTE[0].key,
     createdAt: typeof x.createdAt === 'string' && DAY_KEY.test(x.createdAt) ? x.createdAt : todayKey(),
     completions,
+    goal,
+    amounts,
     completionTimes,
     schedule: normalizeSchedule(x.schedule),
     reminder: normalizeReminder(x.reminder),
     archived: x.archived === true ? true : undefined,
     order: typeof x.order === 'number' ? x.order : index,
+  }
+}
+
+function normalizeGoal(raw: unknown): Goal | undefined {
+  const g = raw as Partial<Goal> | undefined
+  const positive = (n: unknown): n is number => typeof n === 'number' && Number.isFinite(n) && n > 0
+  if (!g || !positive(g.target)) return undefined
+  return {
+    target: g.target,
+    unit: typeof g.unit === 'string' ? g.unit.slice(0, 20) : '',
+    step: positive(g.step) ? g.step : 1,
   }
 }
 

@@ -7,7 +7,8 @@ import { normalizeHabit } from './migrate'
 
 const FORMAT = 'habitly-backup'
 // v2 (app 1.1): icon keys instead of emoji, schedules, reminders, completion times.
-const VERSION = 2
+// v3: measurable habits (goal, amounts).
+const VERSION = 3
 
 export interface Backup {
   habits: Habit[]
