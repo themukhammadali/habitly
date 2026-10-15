@@ -24,6 +24,24 @@
 
         </activity>
 
+        <!-- Home screen widget: today's habits (see java/com/habitly/app/widget). -->
+        <receiver
+            android:name=".widget.HabitlyWidgetProvider"
+            android:exported="true"
+            android:label="@string/widget_title">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/habitly_widget_info" />
+        </receiver>
+
+        <service
+            android:name=".widget.HabitlyWidgetService"
+            android:exported="false"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

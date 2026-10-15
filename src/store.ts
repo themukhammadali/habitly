@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware'
 import type { Habit, Settings } from './types'
 import { minutesOfDay, todayKey } from './lib/dates'
 import { normalizeHabit } from './lib/migrate'
-import { applyGoal, setAmount as setHabitAmount, toggleDay as toggleHabitDay } from './lib/measure'
+import { applyGoal, setAmount as setHabitAmount, toggleDay as toggleHabitDay, type Clock } from './lib/measure'
 
 const clock = () => ({ today: todayKey(), minutes: minutesOfDay() })
 
@@ -17,9 +17,10 @@ interface State {
   deleteHabit: (id: string) => void
   /** Puts back a habit removed by deleteHabit, at its old position. */
   restoreHabit: (h: Habit) => void
-  toggleDay: (id: string, dayKey: string) => void
+  /** `at` is when it happened, if not now (e.g. a tap on the widget while the app was closed). */
+  toggleDay: (id: string, dayKey: string, at?: Clock) => void
   /** Measurable habits: set the amount logged on a day. */
-  setAmount: (id: string, dayKey: string, amount: number) => void
+  setAmount: (id: string, dayKey: string, amount: number, at?: Clock) => void
   setArchived: (id: string, archived: boolean) => void
   reorder: (ids: string[]) => void
   setTheme: (theme: Settings['theme']) => void
@@ -74,14 +75,14 @@ export const useStore = create<State>()(
           ),
         })),
 
-      toggleDay: (id, dayKey) =>
+      toggleDay: (id, dayKey, at) =>
         set((s) => ({
-          habits: s.habits.map((h) => (h.id === id ? toggleHabitDay(h, dayKey, clock()) : h)),
+          habits: s.habits.map((h) => (h.id === id ? toggleHabitDay(h, dayKey, at ?? clock()) : h)),
         })),
 
-      setAmount: (id, dayKey, amount) =>
+      setAmount: (id, dayKey, amount, at) =>
         set((s) => ({
-          habits: s.habits.map((h) => (h.id === id ? setHabitAmount(h, dayKey, amount, clock()) : h)),
+          habits: s.habits.map((h) => (h.id === id ? setHabitAmount(h, dayKey, amount, at ?? clock()) : h)),
         })),
 
       setArchived: (id, archived) =>

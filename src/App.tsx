@@ -25,6 +25,7 @@ import type { Habit } from './types'
 import { todayKey } from './lib/dates'
 import { isActionable, isSatisfied } from './lib/schedule'
 import { initNotificationActions, syncReminders } from './lib/notify'
+import { initWidget, pullWidgetActions, syncWidget } from './lib/widget'
 import { successFeedback, tapFeedback } from './lib/haptics'
 import HabitCard from './components/HabitCard'
 import HabitEditor from './components/HabitEditor'
@@ -56,7 +57,7 @@ export default function App() {
   const day = today
 
   useApplyTheme(theme)
-  useReminders(habits)
+  useNativeSync(habits)
 
   const active = useMemo(
     () => habits.filter((h) => !h.archived).sort((a, b) => a.order - b.order),
@@ -361,22 +362,36 @@ function useCelebration(habits: Habit[], today: string) {
 }
 
 /** Keeps scheduled reminders in step with the habits, and wires up "Mark done". */
-function useReminders(habits: Habit[]) {
+/**
+ * Keeps scheduled reminders and the home screen widget in step with the
+ * habits, wires up "Mark done", and applies taps made on the widget.
+ */
+function useNativeSync(habits: Habit[]) {
   useEffect(() => {
     initNotificationActions((habitId, day) => {
       const h = useStore.getState().habits.find((x) => x.id === habitId)
       if (h && !h.completions[day]) useStore.getState().toggleDay(habitId, day)
     })
+    initWidget()
     if (!Capacitor.isNativePlatform()) return
-    // A new day means new reminders to plan.
-    const sub = CapApp.addListener('resume', () => syncReminders(useStore.getState().habits))
+    // Back from the background: apply widget taps made meanwhile, and a new
+    // day may mean new reminders and a fresh widget.
+    const sub = CapApp.addListener('resume', async () => {
+      await pullWidgetActions()
+      const current = useStore.getState().habits
+      syncReminders(current)
+      syncWidget(current)
+    })
     return () => {
       sub.then((s) => s.remove())
     }
   }, [])
 
   useEffect(() => {
-    const t = setTimeout(() => syncReminders(habits), 400)
+    const t = setTimeout(() => {
+      syncReminders(habits)
+      syncWidget(habits)
+    }, 400)
     return () => clearTimeout(t)
   }, [habits])
 }
