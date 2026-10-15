@@ -177,9 +177,9 @@ public class HabitlyWidgetProvider extends AppWidgetProvider {
         if (hDp <= 0) hDp = 120;
         DisplayMetrics m = ctx.getResources().getDisplayMetrics();
         // The card's padding (see widget_habit.xml), on both sides.
-        int horizontal = 20 * 2;
-        int vertical = 20 * 2;
-        int header = 40 + 10;
+        int horizontal = 24 * 2;
+        int vertical = 24 * 2;
+        int header = 44 + 14;
         return new int[] {
             Math.round((wDp - horizontal) * m.density),
             Math.round(Math.max(40, hDp - vertical - header) * m.density),

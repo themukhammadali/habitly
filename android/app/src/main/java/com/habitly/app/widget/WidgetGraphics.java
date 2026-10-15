@@ -9,8 +9,6 @@ import android.graphics.Path;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 
-import java.util.Calendar;
-
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
 
@@ -31,7 +29,7 @@ final class WidgetGraphics {
 
     /** The habit's icon in its color, on a soft tile of the same color (like the app). */
     static Bitmap iconTile(Context ctx, String icon, int color) {
-        int size = Math.round(dp(ctx, 36));
+        int size = Math.round(dp(ctx, 40));
         Bitmap bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bmp);
         Paint bg = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -63,7 +61,7 @@ final class WidgetGraphics {
      * around a plus.
      */
     static Bitmap actionButton(Context ctx, WidgetStore.Habit row) {
-        int size = Math.round(dp(ctx, 36));
+        int size = Math.round(dp(ctx, 44));
         Bitmap bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bmp);
         float c = size / 2f;
@@ -114,33 +112,34 @@ final class WidgetGraphics {
         return bmp;
     }
 
+    /** Days per heatmap column: fewer rows than a week keeps the dots large. */
+    private static final int ROWS = 5;
+
     /**
-     * The app's dot heatmap: 7 rows (Monday to Sunday), one column per week,
-     * ending with this week, as many weeks as fit the given size.
+     * The habit's recent days as dots, ROWS days per column, filled down then
+     * across, ending with today in the bottom-right corner. As many columns
+     * as fit the given size.
      */
     static Bitmap heatmap(Context ctx, WidgetStore.Habit habit, int width, int height) {
         width = Math.max(1, width);
         height = Math.max(1, height);
         Bitmap bmp = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bmp);
-        // Dots with a quarter-dot gap: 7 dots + 6 gaps fill the height.
-        float dot = Math.min(height / 8.5f, dp(ctx, 14));
+        // Dots with a quarter-dot gap: ROWS dots and ROWS - 1 gaps fill the height.
+        float dot = Math.min(height / (ROWS + (ROWS - 1) * 0.25f), dp(ctx, 22));
         float gap = dot * 0.25f;
-        int weeks = Math.max(1, (int) ((width + gap) / (dot + gap)));
-        float used = weeks * dot + (weeks - 1) * gap;
+        int cols = Math.max(1, (int) ((width + gap) / (dot + gap)));
+        float used = cols * dot + (cols - 1) * gap;
         float left = (width - used) / 2f;
-        float top = (height - (7 * dot + 6 * gap)) / 2f;
+        float top = (height - (ROWS * dot + (ROWS - 1) * gap)) / 2f;
 
         Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
         int empty = Color.argb(41, 120, 120, 128);
         int before = Color.argb(18, 120, 120, 128);
-        int todayRow = WidgetStore.weekday(Calendar.getInstance());
         int last = habit.history.length - 1;
-        for (int col = 0; col < weeks; col++) {
-            int weeksBack = weeks - 1 - col;
-            for (int row = 0; row < 7; row++) {
-                int daysBack = weeksBack * 7 + (todayRow - row);
-                if (daysBack < 0) continue; // later this week
+        for (int col = 0; col < cols; col++) {
+            for (int row = 0; row < ROWS; row++) {
+                int daysBack = (cols - 1 - col) * ROWS + (ROWS - 1 - row);
                 int i = last - daysBack;
                 double v = i >= 0 ? habit.history[i] : -1;
                 if (v >= 1) p.setColor(habit.color);

@@ -9,17 +9,17 @@
         android:layout_height="match_parent"
         android:background="@drawable/widget_background"
         android:orientation="vertical"
-        android:padding="20dp">
+        android:padding="24dp">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="40dp"
+            android:layout_height="44dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
             <ImageView
-                android:layout_width="36dp"
-                android:layout_height="36dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:background="@drawable/widget_preview_icon_background"
                 android:importantForAccessibility="no"
                 android:padding="8dp"
@@ -29,7 +29,7 @@
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
+                android:layout_marginStart="12dp"
                 android:layout_weight="1"
                 android:orientation="vertical">
 
@@ -38,7 +38,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/widget_preview_name"
                     android:textColor="@color/widget_text"
-                    android:textSize="15sp"
+                    android:textSize="17sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -46,21 +46,20 @@
                     android:layout_height="wrap_content"
                     android:text="@string/widget_preview_streak"
                     android:textColor="@color/widget_text_secondary"
-                    android:textSize="12sp" />
+                    android:textSize="13sp" />
             </LinearLayout>
 
             <ImageView
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
                 android:importantForAccessibility="no"
-                android:padding="2dp"
                 android:src="@drawable/widget_preview_check" />
         </LinearLayout>
 
         <ImageView
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="14dp"
             android:layout_weight="1"
             android:importantForAccessibility="no"
             android:scaleType="fitCenter"
