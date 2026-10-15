@@ -2,6 +2,12 @@
 
 A minimalist daily habit tracker. Build streaks and see your progress at a glance.
 
+<p>
+  <a href="https://github.com/themukhammadali/habitly/releases/latest/download/habitly.apk"><img alt="Download APK" src="https://img.shields.io/badge/Download-APK-2fb170?style=for-the-badge&logo=android&logoColor=white" height="44"></a>
+  &nbsp;
+  <a href="https://themukhammadali.github.io/habitly/"><img alt="Open in browser" src="https://img.shields.io/badge/Open-in%20browser-1c1c1e?style=for-the-badge&logo=googlechrome&logoColor=white" height="44"></a>
+</p>
+
 **Try it in the browser:** https://themukhammadali.github.io/habitly/
 **Android:** download the latest APK from [Releases](https://github.com/themukhammadali/habitly/releases/latest)
 

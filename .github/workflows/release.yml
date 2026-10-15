@@ -34,7 +34,9 @@ jobs:
           export VERSION_CODE="${{ github.run_number }}"
           npm run apk:release
           cp android/app/build/outputs/apk/release/app-release.apk "habitly-$VERSION_NAME.apk"
+          # A fixed name too, so releases/latest/download/habitly.apk always gets the newest.
+          cp android/app/build/outputs/apk/release/app-release.apk habitly.apk
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "${{ github.ref_name }}" habitly-*.apk --title "Habitly ${{ github.ref_name }}" --generate-notes
+        run: gh release create "${{ github.ref_name }}" habitly-*.apk habitly.apk --title "Habitly ${{ github.ref_name }}" --generate-notes
