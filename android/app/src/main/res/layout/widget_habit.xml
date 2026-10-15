@@ -1,17 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The outer frame is the margin around the widget; the card inside it has the background. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:paddingHorizontal="16dp"
-    android:paddingVertical="12dp">
-
-<FrameLayout
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/widget_background"
-    android:padding="14dp">
+    android:padding="20dp">
 
     <LinearLayout
         android:id="@+id/widget_content"
@@ -94,5 +87,4 @@
         android:textColor="@color/widget_text_secondary"
         android:textSize="14sp"
         android:visibility="gone" />
-</FrameLayout>
 </FrameLayout>
