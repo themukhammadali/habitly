@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ChevronLeft } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import type { Goal, Habit, Reminder, Schedule } from '../types'
 import { PALETTE, colorHex } from '../lib/palette'
 import { DEFAULT_ICON, HabitIcon, ICONS } from '../lib/icons'
@@ -141,16 +141,16 @@ export default function HabitEditor({
           type="button"
           onClick={requestClose}
           aria-label="Back"
-          className="mt-2 flex h-10 w-10 items-center justify-center rounded-full text-neutral-600 active:bg-black/5 dark:text-neutral-300 dark:active:bg-white/10"
+          className="mt-2 flex h-11 w-11 items-center justify-center rounded-full bg-container-high text-neutral-700 transition duration-300 ease-spring active:scale-90 dark:text-neutral-200"
         >
-          <ChevronLeft className="h-6 w-6" />
+          <ArrowLeft className="h-5 w-5" strokeWidth={2.3} />
         </button>
         <h1 className="mt-2 font-semibold text-neutral-900 dark:text-neutral-50">{editing ? 'Edit Habit' : 'New Habit'}</h1>
         <button
           type="button"
           onClick={save}
           disabled={!canSave}
-          className="mt-2 rounded-full px-4 py-2 text-[15px] font-semibold text-white transition active:scale-95 disabled:opacity-40"
+          className="mt-2 flex h-11 items-center rounded-full px-5 text-[15px] font-bold text-white transition duration-300 ease-spring active:scale-95 disabled:opacity-40"
           style={{ background: hex }}
         >
           Save

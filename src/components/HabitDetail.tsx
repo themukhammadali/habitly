@@ -8,7 +8,7 @@ import { predict } from '../lib/predict'
 import { reminderTime } from '../lib/reminders'
 import { todayKey } from '../lib/dates'
 import { useBackHandler } from '../hooks/useBackHandler'
-import { LayoutGrid } from 'lucide-react'
+import { ArrowLeft, LayoutGrid, Pencil } from 'lucide-react'
 import { requestWidgetPin, widgetSupported } from '../lib/widget'
 import { useToast } from './Toast'
 import { amountBetween, formatAmount, partialDays, usualAmount } from '../lib/measure'
@@ -62,24 +62,22 @@ export default function HabitDetail({
   return (
     <div className="fixed inset-0 z-40 animate-fade-in overflow-y-auto bg-surface no-scrollbar">
       {/* Header */}
-      <div className="sticky top-0 z-10 flex items-center justify-between bg-surface/90 px-3 py-3 pt-safe backdrop-blur">
+      <div className="sticky top-0 z-10 flex items-center justify-between bg-surface/90 px-3 pb-2 pt-safe backdrop-blur">
         <button
           type="button"
           onClick={onClose}
-          className="flex items-center gap-0.5 text-[15px] font-medium"
-          style={{ color: hex }}
+          aria-label="Back to habits"
+          className="mt-2 flex h-11 w-11 items-center justify-center rounded-full bg-container-high text-neutral-700 transition duration-300 ease-spring active:scale-90 dark:text-neutral-200"
         >
-          <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5">
-            <path d="M15 6l-6 6 6 6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          Habits
+          <ArrowLeft className="h-5 w-5" strokeWidth={2.3} />
         </button>
         <button
           type="button"
           onClick={() => setEditing(true)}
-          className="text-[15px] font-medium"
-          style={{ color: hex }}
+          className="mt-2 flex h-11 items-center gap-2 rounded-full px-5 text-[15px] font-bold transition duration-300 ease-spring active:scale-95"
+          style={{ background: `${hex}26`, color: hex }}
         >
+          <Pencil className="h-4 w-4" strokeWidth={2.4} />
           Edit
         </button>
       </div>
