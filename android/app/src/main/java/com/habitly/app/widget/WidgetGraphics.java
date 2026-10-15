@@ -61,7 +61,7 @@ final class WidgetGraphics {
      * around a plus.
      */
     static Bitmap actionButton(Context ctx, WidgetStore.Habit row) {
-        int size = Math.round(dp(ctx, 44));
+        int size = Math.round(dp(ctx, 50));
         Bitmap bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bmp);
         float c = size / 2f;
@@ -125,8 +125,9 @@ final class WidgetGraphics {
         height = Math.max(1, height);
         Bitmap bmp = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bmp);
-        // Dots with a quarter-dot gap: ROWS dots and ROWS - 1 gaps fill the height.
-        float dot = Math.min(height / (ROWS + (ROWS - 1) * 0.25f), dp(ctx, 22));
+        // Dots with a quarter-dot gap, using most (not all) of the height so the
+        // heatmap stays a little lighter than the header.
+        float dot = Math.min(0.88f * height / (ROWS + (ROWS - 1) * 0.25f), dp(ctx, 20));
         float gap = dot * 0.25f;
         int cols = Math.max(1, (int) ((width + gap) / (dot + gap)));
         float used = cols * dot + (cols - 1) * gap;

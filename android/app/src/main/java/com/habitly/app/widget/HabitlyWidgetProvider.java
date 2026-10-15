@@ -179,7 +179,7 @@ public class HabitlyWidgetProvider extends AppWidgetProvider {
         // The card's padding (see widget_habit.xml), on both sides.
         int horizontal = 24 * 2;
         int vertical = 24 * 2;
-        int header = 44 + 14;
+        int header = 50 + 14;
         return new int[] {
             Math.round((wDp - horizontal) * m.density),
             Math.round(Math.max(40, hDp - vertical - header) * m.density),
