@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import { ChevronLeft } from 'lucide-react'
 import type { Habit, Reminder, Schedule } from '../types'
 import { PALETTE, colorHex } from '../lib/palette'
 import { DEFAULT_ICON, HabitIcon, ICONS } from '../lib/icons'
@@ -6,11 +7,36 @@ import { WEEKDAYS_SHORT, formatTime, todayKey } from '../lib/dates'
 import { predict, MIN_SAMPLES } from '../lib/predict'
 import { reminderTime } from '../lib/reminders'
 import { ensurePermission, remindersSupported } from '../lib/notify'
+import { useBackHandler } from '../hooks/useBackHandler'
 import { useStore } from '../store'
-import Sheet from './Sheet'
 import { useToast } from './Toast'
 
-export default function HabitSheet({
+const CLOSE_MS = 220
+/** Icons shown before "Show all": two rows. */
+const ICON_PREVIEW = 16
+
+interface Template {
+  name: string
+  icon: string
+  color: string
+  schedule: Schedule
+  /** Reminder time in minutes, or null for a smart reminder. */
+  remindAt: number | null
+}
+
+const TEMPLATES: Template[] = [
+  { name: 'Drink water', icon: 'glass-water', color: 'blue', schedule: { kind: 'daily' }, remindAt: null },
+  { name: 'Read', icon: 'book', color: 'violet', schedule: { kind: 'daily' }, remindAt: null },
+  { name: 'Workout', icon: 'dumbbell', color: 'red', schedule: { kind: 'weekly', times: 3 }, remindAt: null },
+  { name: 'Meditate', icon: 'flower', color: 'teal', schedule: { kind: 'daily' }, remindAt: null },
+  { name: 'Sleep early', icon: 'moon', color: 'indigo', schedule: { kind: 'daily' }, remindAt: 21 * 60 + 30 },
+  { name: 'Walk', icon: 'footprints', color: 'amber', schedule: { kind: 'daily' }, remindAt: null },
+  { name: 'Journal', icon: 'pen', color: 'sand', schedule: { kind: 'daily' }, remindAt: 21 * 60 },
+  { name: 'No phone in bed', icon: 'no-phone', color: 'slate', schedule: { kind: 'daily' }, remindAt: 22 * 60 },
+]
+
+/** Full-screen editor for creating a habit or changing an existing one. */
+export default function HabitEditor({
   habit,
   onClose,
 }: {
@@ -24,71 +50,180 @@ export default function HabitSheet({
   const setArchived = useStore((s) => s.setArchived)
   const showToast = useToast((s) => s.show)
   const editing = !!habit
+  const canRemind = remindersSupported()
 
-  const [name, setName] = useState(habit?.name ?? '')
-  const [description, setDescription] = useState(habit?.description ?? '')
-  const [icon, setIcon] = useState(habit?.icon ?? DEFAULT_ICON)
-  const [color, setColor] = useState(habit?.color ?? PALETTE[0].key)
-  const [schedule, setSchedule] = useState<Schedule>(habit?.schedule ?? { kind: 'daily' })
-  const [reminder, setReminder] = useState<Reminder>(
-    habit?.reminder ?? { mode: remindersSupported() ? 'smart' : 'off', time: 9 * 60 },
+  const initial = useMemo(
+    () => ({
+      name: habit?.name ?? '',
+      description: habit?.description ?? '',
+      icon: habit?.icon ?? DEFAULT_ICON,
+      color: habit?.color ?? PALETTE[0].key,
+      schedule: habit?.schedule ?? ({ kind: 'daily' } as Schedule),
+      reminder: habit?.reminder ?? ({ mode: canRemind ? 'smart' : 'off', time: 9 * 60 } as Reminder),
+    }),
+    [habit, canRemind],
   )
+  const [name, setName] = useState(initial.name)
+  const [description, setDescription] = useState(initial.description)
+  const [icon, setIcon] = useState(initial.icon)
+  const [color, setColor] = useState(initial.color)
+  const [schedule, setSchedule] = useState<Schedule>(initial.schedule)
+  const [reminder, setReminder] = useState<Reminder>(initial.reminder)
+  const [allIcons, setAllIcons] = useState(false)
+  const [closing, setClosing] = useState(false)
 
   const hex = colorHex(color)
   const canSave = name.trim().length > 0
+  const fields = { name: name.trim(), description: description.trim(), icon, color, schedule, reminder }
+  const dirty =
+    JSON.stringify(fields) !==
+    JSON.stringify({ ...initial, name: initial.name.trim(), description: initial.description.trim() })
 
-  async function save(close: () => void) {
+  function close() {
+    setClosing(true)
+    setTimeout(onClose, CLOSE_MS)
+  }
+
+  /** Back arrow and Android back: ask before throwing away changes. */
+  function requestClose() {
+    if (dirty && !window.confirm(editing ? 'Discard your changes?' : 'Discard this new habit?')) return
+    close()
+  }
+  useBackHandler(requestClose)
+
+  async function save() {
     if (!canSave) return
-    const fields = { name: name.trim(), description: description.trim(), icon, color, schedule, reminder }
     if (editing && habit) updateHabit(habit.id, fields)
     else addHabit(fields)
     close()
-    if (reminder.mode !== 'off' && remindersSupported() && !(await ensurePermission())) {
+    if (reminder.mode !== 'off' && canRemind && !(await ensurePermission())) {
       showToast('Notifications are off for Habitly. Turn them on in Android settings to get reminders.')
     }
   }
 
+  function applyTemplate(t: Template) {
+    setName(t.name)
+    setIcon(t.icon)
+    setColor(t.color)
+    setSchedule(t.schedule)
+    setReminder(
+      !canRemind
+        ? { mode: 'off', time: t.remindAt ?? 9 * 60 }
+        : t.remindAt === null
+          ? { mode: 'smart', time: 9 * 60 }
+          : { mode: 'fixed', time: t.remindAt },
+    )
+  }
+
+  // Keep the selected icon visible even when the list is collapsed.
+  const shownIcons = allIcons
+    ? ICONS
+    : [...ICONS.slice(0, ICON_PREVIEW - 1), ...(ICONS.slice(0, ICON_PREVIEW - 1).some((i) => i.key === icon)
+        ? [ICONS[ICON_PREVIEW - 1]]
+        : ICONS.filter((i) => i.key === icon))]
+
   return (
-    <Sheet title={editing ? 'Edit Habit' : 'New Habit'} onClose={onClose}>
-      {(close) => (
-        <div className="space-y-6">
-          {/* Preview */}
-          <div className="flex items-center gap-3 rounded-2xl bg-neutral-100 p-3 dark:bg-neutral-800">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl" style={{ background: `${hex}22` }}>
-              <HabitIcon name={icon} className="h-6 w-6" style={{ color: hex }} />
-            </div>
-            <div className="min-w-0">
-              <div className="truncate font-semibold text-neutral-900 dark:text-neutral-50">{name || 'Habit name'}</div>
-              <div className="truncate text-sm text-neutral-400">{description || 'Description'}</div>
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={editing ? 'Edit habit' : 'New habit'}
+      className={`fixed inset-0 z-50 overflow-y-auto bg-neutral-100 dark:bg-neutral-950 no-scrollbar ${
+        closing ? 'animate-slide-out' : 'animate-slide-in'
+      }`}
+    >
+      <header className="sticky top-0 z-10 flex items-center justify-between border-b border-black/5 bg-neutral-100/90 px-2 pb-2 pt-safe backdrop-blur-xl dark:border-white/5 dark:bg-neutral-950/90">
+        <button
+          type="button"
+          onClick={requestClose}
+          aria-label="Back"
+          className="mt-2 flex h-10 w-10 items-center justify-center rounded-full text-neutral-600 active:bg-black/5 dark:text-neutral-300 dark:active:bg-white/10"
+        >
+          <ChevronLeft className="h-6 w-6" />
+        </button>
+        <h1 className="mt-2 font-semibold text-neutral-900 dark:text-neutral-50">{editing ? 'Edit Habit' : 'New Habit'}</h1>
+        <button
+          type="button"
+          onClick={save}
+          disabled={!canSave}
+          className="mt-2 rounded-full px-4 py-2 text-[15px] font-semibold text-white transition active:scale-95 disabled:opacity-40"
+          style={{ background: hex }}
+        >
+          Save
+        </button>
+      </header>
+
+      <div className="mx-auto max-w-md space-y-6 px-4 pb-16 pt-5">
+        {/* Preview */}
+        <div className="flex flex-col items-center text-center">
+          <div
+            className="flex h-20 w-20 items-center justify-center rounded-3xl transition-colors"
+            style={{ background: `${hex}22` }}
+          >
+            <HabitIcon name={icon} className="h-10 w-10" style={{ color: hex }} />
+          </div>
+          <div className="mt-3 max-w-full truncate text-xl font-bold text-neutral-900 dark:text-neutral-50">
+            {name.trim() || 'New habit'}
+          </div>
+          <div className="max-w-full truncate text-sm text-neutral-400">{description.trim() || 'Add a description'}</div>
+        </div>
+
+        {!editing && (
+          <div>
+            <Label>Start from a template</Label>
+            <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 no-scrollbar">
+              {TEMPLATES.map((t) => {
+                const c = colorHex(t.color)
+                const selected = name === t.name && icon === t.icon
+                return (
+                  <button
+                    key={t.name}
+                    type="button"
+                    onClick={() => applyTemplate(t)}
+                    aria-pressed={selected}
+                    className="flex shrink-0 items-center gap-2 rounded-full bg-white py-2 pl-2 pr-3.5 text-sm font-medium text-neutral-800 shadow-sm ring-1 transition active:scale-95 dark:bg-neutral-900 dark:text-neutral-100"
+                    style={{ ['--tw-ring-color' as string]: selected ? c : 'rgba(0,0,0,0.06)' }}
+                  >
+                    <span className="flex h-7 w-7 items-center justify-center rounded-full" style={{ background: `${c}22` }}>
+                      <HabitIcon name={t.icon} className="h-4 w-4" style={{ color: c }} />
+                    </span>
+                    {t.name}
+                  </button>
+                )
+              })}
             </div>
           </div>
+        )}
 
+        <Card>
           <Field label="Name">
             <input
               autoFocus={!editing}
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Drink Water"
+              placeholder="Read 20 pages"
               maxLength={40}
+              enterKeyHint="next"
               className="w-full rounded-xl bg-neutral-100 px-3 py-2.5 text-neutral-900 outline-none dark:bg-neutral-800 dark:text-neutral-50"
               style={{ caretColor: hex }}
             />
           </Field>
-
           <Field label="Description">
             <input
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Drink 3 litres of water a day"
+              placeholder="Optional details"
               maxLength={60}
+              enterKeyHint="done"
               className="w-full rounded-xl bg-neutral-100 px-3 py-2.5 text-neutral-900 outline-none dark:bg-neutral-800 dark:text-neutral-50"
               style={{ caretColor: hex }}
             />
           </Field>
+        </Card>
 
+        <Card>
           <Field label="Icon">
             <div className="grid grid-cols-8 gap-2">
-              {ICONS.map(({ key }) => (
+              {shownIcons.map(({ key }) => (
                 <button
                   key={key}
                   type="button"
@@ -102,12 +237,18 @@ export default function HabitSheet({
                     color: icon === key ? hex : undefined,
                   }}
                 >
-                  <HabitIcon name={key} className={`h-5 w-5 ${icon === key ? "" : "text-neutral-600 dark:text-neutral-300"}`} />
+                  <HabitIcon name={key} className={`h-5 w-5 ${icon === key ? '' : 'text-neutral-600 dark:text-neutral-300'}`} />
                 </button>
               ))}
             </div>
+            <button
+              type="button"
+              onClick={() => setAllIcons((a) => !a)}
+              className="mt-3 w-full rounded-xl py-2 text-sm font-medium text-neutral-500 active:bg-black/5 dark:active:bg-white/10"
+            >
+              {allIcons ? 'Show fewer' : `Show all ${ICONS.length} icons`}
+            </button>
           </Field>
-
           <Field label="Color">
             <div className="flex flex-wrap gap-3">
               {PALETTE.map((c) => (
@@ -127,55 +268,58 @@ export default function HabitSheet({
               ))}
             </div>
           </Field>
+        </Card>
 
+        <Card>
           <Field label="Repeat">
             <ScheduleEditor schedule={schedule} onChange={setSchedule} color={hex} />
           </Field>
-
           <Field label="Reminder">
             <ReminderEditor habit={habit ?? null} reminder={reminder} onChange={setReminder} color={hex} />
           </Field>
+        </Card>
 
-          <button
-            type="button"
-            onClick={() => save(close)}
-            disabled={!canSave}
-            className="w-full rounded-xl py-3 font-semibold text-white transition active:scale-[0.98] disabled:opacity-40"
-            style={{ background: hex }}
-          >
-            {editing ? 'Save Changes' : 'Create Habit'}
-          </button>
-
-          {editing && habit && (
-            <div className="space-y-1">
-              <button
-                type="button"
-                onClick={() => {
-                  setArchived(habit.id, true)
-                  close()
-                  showToast(`Archived “${habit.name}”`, { label: 'Undo', run: () => setArchived(habit.id, false) })
-                }}
-                className="w-full rounded-xl py-3 font-medium text-neutral-500 transition active:scale-[0.98]"
-              >
-                Archive Habit
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  deleteHabit(habit.id)
-                  close()
-                  showToast(`Deleted “${habit.name}”`, { label: 'Undo', run: () => restoreHabit(habit) })
-                }}
-                className="w-full rounded-xl py-3 font-medium text-red-500 transition active:scale-[0.98]"
-              >
-                Delete Habit
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-    </Sheet>
+        {editing && habit && (
+          <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/5 dark:bg-neutral-900 dark:ring-white/5">
+            <button
+              type="button"
+              onClick={() => {
+                setArchived(habit.id, true)
+                close()
+                showToast(`Archived “${habit.name}”`, { label: 'Undo', run: () => setArchived(habit.id, false) })
+              }}
+              className="w-full border-b border-black/5 py-3.5 font-medium text-neutral-600 active:bg-black/5 dark:border-white/5 dark:text-neutral-300 dark:active:bg-white/5"
+            >
+              Archive Habit
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                deleteHabit(habit.id)
+                close()
+                showToast(`Deleted “${habit.name}”`, { label: 'Undo', run: () => restoreHabit(habit) })
+              }}
+              className="w-full py-3.5 font-medium text-red-500 active:bg-red-500/10"
+            >
+              Delete Habit
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
   )
+}
+
+function Card({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="space-y-5 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5 dark:bg-neutral-900 dark:ring-white/5">
+      {children}
+    </div>
+  )
+}
+
+function Label({ children }: { children: React.ReactNode }) {
+  return <div className="mb-2 px-1 text-xs font-medium uppercase tracking-wide text-neutral-400">{children}</div>
 }
 
 function ScheduleEditor({

@@ -42,17 +42,6 @@ html.dark body {
   scrollbar-width: none;
 }
 
-@keyframes sheet-up {
-  from {
-    transform: translateY(100%);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
-.animate-sheet-up {
-  animation: sheet-up 0.28s cubic-bezier(0.32, 0.72, 0, 1);
-}
 
 @keyframes fade-in {
   from {
@@ -95,17 +84,6 @@ html.dark body {
   animation: toast-in 0.22s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-@keyframes sheet-down {
-  from {
-    transform: translateY(0);
-  }
-  to {
-    transform: translateY(100%);
-  }
-}
-.animate-sheet-down {
-  animation: sheet-down 0.2s cubic-bezier(0.32, 0, 0.67, 0) forwards;
-}
 
 @keyframes fade-out {
   to {
@@ -152,4 +130,28 @@ html.dark body {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+.animate-slide-in {
+  animation: slide-in 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes slide-out {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+.animate-slide-out {
+  animation: slide-out 0.22s cubic-bezier(0.32, 0, 0.67, 0) forwards;
 }

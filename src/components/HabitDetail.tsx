@@ -12,7 +12,7 @@ import { useStore } from '../store'
 import YearGrid from './YearGrid'
 import CalendarMonth from './CalendarMonth'
 import WeeklyPattern from './WeeklyPattern'
-import HabitSheet from './HabitSheet'
+import HabitEditor from './HabitEditor'
 
 export default function HabitDetail({
   habit,
@@ -149,7 +149,7 @@ export default function HabitDetail({
       </div>
 
       {editing && (
-        <HabitSheet
+        <HabitEditor
           habit={habit}
           onClose={() => {
             setEditing(false)

@@ -27,7 +27,7 @@ import { isActionable, isSatisfied } from './lib/schedule'
 import { initNotificationActions, syncReminders } from './lib/notify'
 import { successFeedback, tapFeedback } from './lib/haptics'
 import HabitCard from './components/HabitCard'
-import HabitSheet from './components/HabitSheet'
+import HabitEditor from './components/HabitEditor'
 import HabitDetail from './components/HabitDetail'
 import Settings from './components/Settings'
 import Analytics from './components/Analytics'
@@ -173,7 +173,7 @@ export default function App() {
         </div>
       </nav>
 
-      {adding && <HabitSheet onClose={() => setAdding(false)} />}
+      {adding && <HabitEditor onClose={() => setAdding(false)} />}
       {detailHabit && <HabitDetail habit={detailHabit} onClose={() => setDetailId(null)} />}
       {celebrating && <Confetti />}
       <Toast />
