@@ -39,7 +39,12 @@ final class WidgetGraphics {
 
         int res = ctx.getResources().getIdentifier("widget_icon_" + icon.replace('-', '_'), "drawable", ctx.getPackageName());
         if (res == 0) res = ctx.getResources().getIdentifier("widget_icon_target", "drawable", ctx.getPackageName());
-        Drawable d = res == 0 ? null : ContextCompat.getDrawable(ctx, res);
+        Drawable d = null;
+        try {
+            d = res == 0 ? null : ContextCompat.getDrawable(ctx, res);
+        } catch (RuntimeException e) {
+            // A broken icon shouldn't take the widget down; show the tile alone.
+        }
         if (d != null) {
             d = DrawableCompat.wrap(d.mutate());
             DrawableCompat.setTint(d, color);

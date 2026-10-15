@@ -13,6 +13,55 @@ if (entries.length === 0) throw new Error('No icons found in src/lib/icons.tsx')
 // Flower2 -> flower-2, BookOpen -> book-open
 const kebab = (name) => name.replace(/([a-z])([A-Z0-9])/g, '$1-$2').replace(/([0-9])([A-Z])/g, '$1-$2').toLowerCase()
 
+/**
+ * Rewrites SVG path data so every number is separated. Minified arcs like
+ * "a5 5 0 0012 5" pack the two flags against the next number; browsers accept
+ * that, Android's path parser doesn't.
+ */
+function normalizePath(d) {
+  const out = []
+  let i = 0
+  let cmd = ''
+  let arg = 0
+  const num = /^[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?/
+  while (i < d.length) {
+    const ch = d[i]
+    if (/[\s,]/.test(ch)) {
+      i++
+    } else if (/[a-zA-Z]/.test(ch)) {
+      cmd = ch
+      arg = 0
+      out.push(ch)
+      i++
+    } else if (/[aA]/.test(cmd) && (arg % 7 === 3 || arg % 7 === 4)) {
+      // Arc flags are a single 0 or 1.
+      out.push(ch)
+      arg++
+      i++
+    } else {
+      const m = d.slice(i).match(num)
+      if (!m) throw new Error(`Bad path data at ${i}: ${d}`)
+      out.push(m[0])
+      arg++
+      i += m[0].length
+    }
+  }
+  return out.join(' ').replace(/ ([a-zA-Z]) /g, '$1').replace(/^([a-zA-Z]) /, '$1')
+}
+
+/** Fails like Android's PathParser would: each command needs a multiple of its argument count. */
+const ARGS = { m: 2, l: 2, h: 1, v: 1, c: 6, s: 4, q: 4, t: 2, a: 7, z: 0 }
+function checkPath(d, icon) {
+  for (const [, cmd, rest] of d.matchAll(/([a-zA-Z])([^a-zA-Z]*)/g)) {
+    const count = rest.trim() ? rest.trim().split(/\s+/).length : 0
+    const need = ARGS[cmd.toLowerCase()]
+    if (need === undefined || (need === 0 ? count !== 0 : count === 0 || count % need !== 0)) {
+      throw new Error(`${icon}: "${cmd}" has ${count} numbers in ${d}`)
+    }
+  }
+  return d
+}
+
 const n = (v) => Number(v ?? 0)
 function toPath([tag, a]) {
   switch (tag) {
@@ -58,7 +107,7 @@ for (const { key, name } of entries) {
   const paths = __iconData.node
     .map(
       (el) => `    <path
-        android:pathData="${toPath(el)}"
+        android:pathData="${checkPath(normalizePath(toPath(el)), key)}"
         android:strokeColor="#FFFFFFFF"
         android:strokeWidth="2"
         android:strokeLineCap="round"
