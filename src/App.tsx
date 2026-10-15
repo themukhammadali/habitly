@@ -22,7 +22,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { ChartColumn, CircleCheckBig, Plus, Settings as SettingsIcon, type LucideIcon } from 'lucide-react'
 import { useStore } from './store'
 import type { Habit } from './types'
-import { addDaysKey, todayKey } from './lib/dates'
+import { todayKey } from './lib/dates'
 import { isActionable, isSatisfied } from './lib/schedule'
 import { initNotificationActions, syncReminders } from './lib/notify'
 import { successFeedback, tapFeedback } from './lib/haptics'
@@ -52,8 +52,8 @@ export default function App() {
   const [detailId, setDetailId] = useState<string | null>(null)
   const [sorting, setSorting] = useState(false)
   const today = useToday()
-  const [showYesterday, setShowYesterday] = useState(false)
-  const day = showYesterday ? addDaysKey(today, -1) : today
+  // Cards always act on today; past days are edited from a habit's calendar.
+  const day = today
 
   useApplyTheme(theme)
   useReminders(habits)
@@ -89,8 +89,6 @@ export default function App() {
           <DaySummary
             habits={active}
             day={day}
-            yesterday={showYesterday}
-            onToggleYesterday={() => setShowYesterday((y) => !y)}
           />
         )}
       </header>
@@ -184,13 +182,9 @@ export default function App() {
 function DaySummary({
   habits,
   day,
-  yesterday,
-  onToggleYesterday,
 }: {
   habits: Habit[]
   day: string
-  yesterday: boolean
-  onToggleYesterday: () => void
 }) {
   const due = habits.filter((h) => isActionable(h, day))
   const done = due.filter((h) => isSatisfied(h, day)).length
@@ -221,21 +215,9 @@ function DaySummary({
           {total === 0 ? 'Nothing scheduled' : all ? 'All done!' : `${done} of ${total} done`}
         </div>
         <div className="text-xs text-neutral-400">
-          {yesterday ? 'Yesterday' : new Date().toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' })}
+          {new Date().toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' })}
         </div>
       </div>
-      <button
-        type="button"
-        onClick={onToggleYesterday}
-        aria-pressed={yesterday}
-        className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-          yesterday
-            ? 'bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900'
-            : 'bg-black/5 text-neutral-500 dark:bg-white/10'
-        }`}
-      >
-        {yesterday ? 'Back to today' : 'Yesterday'}
-      </button>
     </div>
   )
 }
