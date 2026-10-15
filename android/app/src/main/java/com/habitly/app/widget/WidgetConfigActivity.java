@@ -3,6 +3,7 @@ package com.habitly.app.widget;
 import android.app.Activity;
 import android.appwidget.AppWidgetManager;
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -12,6 +13,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+
+import androidx.core.content.res.ResourcesCompat;
 
 import com.habitly.app.R;
 
@@ -44,6 +47,7 @@ public class WidgetConfigActivity extends Activity {
         title.setText(R.string.widget_config_title);
         title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
         title.setTextColor(getColor(R.color.widget_text));
+        title.setTypeface(font(), Typeface.BOLD);
         title.setPadding(dp(4), 0, 0, dp(12));
         list.addView(title);
 
@@ -82,6 +86,7 @@ public class WidgetConfigActivity extends Activity {
         name.setText(h.name);
         name.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         name.setTextColor(getColor(R.color.widget_text));
+        name.setTypeface(font());
         name.setPadding(dp(12), 0, 0, 0);
         row.addView(name);
 
@@ -94,6 +99,16 @@ public class WidgetConfigActivity extends Activity {
         HabitlyWidgetProvider.refresh(this, widgetId);
         setResult(RESULT_OK, new Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId));
         finish();
+    }
+
+    /** The app's font, Manrope; the system font if it can't load. */
+    private Typeface font() {
+        try {
+            Typeface t = ResourcesCompat.getFont(this, R.font.manrope);
+            return t != null ? t : Typeface.DEFAULT;
+        } catch (RuntimeException e) {
+            return Typeface.DEFAULT;
+        }
     }
 
     private int dp(int v) {

@@ -14,11 +14,10 @@ export default {
       },
       fontFamily: {
         sans: [
-          '-apple-system',
-          'BlinkMacSystemFont',
-          'SF Pro Text',
-          'Inter',
+          '"Manrope Variable"',
+          'Manrope',
           'system-ui',
+          '-apple-system',
           'sans-serif',
         ],
       },

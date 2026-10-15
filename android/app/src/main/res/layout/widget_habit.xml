@@ -33,6 +33,7 @@
                 android:orientation="vertical">
 
                 <TextView
+        android:fontFamily="@font/manrope"
                     android:id="@+id/widget_name"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -43,6 +44,7 @@
                     android:textStyle="bold" />
 
                 <TextView
+        android:fontFamily="@font/manrope"
                     android:id="@+id/widget_sub"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -79,6 +81,7 @@
     </LinearLayout>
 
     <TextView
+        android:fontFamily="@font/manrope"
         android:id="@+id/widget_message"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

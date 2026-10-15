@@ -3,6 +3,8 @@ import ReactDOM from 'react-dom/client'
 import App from './App'
 import { Capacitor } from '@capacitor/core'
 import { registerSW } from 'virtual:pwa-register'
+// Bundled with the app so it works offline (OFL-1.1).
+import '@fontsource-variable/manrope'
 import './index.css'
 
 if (Capacitor.isNativePlatform()) {

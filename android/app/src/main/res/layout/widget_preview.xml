@@ -34,6 +34,7 @@
                 android:orientation="vertical">
 
                 <TextView
+        android:fontFamily="@font/manrope"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/widget_preview_name"
@@ -42,6 +43,7 @@
                     android:textStyle="bold" />
 
                 <TextView
+        android:fontFamily="@font/manrope"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/widget_preview_streak"
