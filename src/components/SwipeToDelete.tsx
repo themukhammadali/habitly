@@ -15,10 +15,13 @@ const SLOP = 8
 export default function SwipeToDelete({
   onDelete,
   label,
+  disabled = false,
   children,
 }: {
   onDelete: () => void
   label: string
+  /** While a habit is being dragged to reorder, swiping is off. */
+  disabled?: boolean
   children: React.ReactNode
 }) {
   const [offset, setOffsetState] = useState(0)
@@ -53,6 +56,12 @@ export default function SwipeToDelete({
   function onPointerMove(e: React.PointerEvent) {
     const g = gesture.current
     if (!g) return
+    if (disabled) {
+      gesture.current = null
+      setDragging(false)
+      setOffset(0)
+      return
+    }
     const dx = e.clientX - g.x
     const dy = e.clientY - g.y
     if (g.mode === 'undecided') {

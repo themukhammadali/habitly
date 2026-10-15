@@ -4,29 +4,28 @@ import { App as CapApp } from '@capacitor/app'
 import { StatusBar, Style } from '@capacitor/status-bar'
 import {
   DndContext,
-  PointerSensor,
+  MouseSensor,
   TouchSensor,
-  KeyboardSensor,
   closestCenter,
   useSensor,
   useSensors,
   type DragEndEvent,
 } from '@dnd-kit/core'
+import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers'
 import {
   SortableContext,
   arrayMove,
-  sortableKeyboardCoordinates,
   useSortable,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { ChartColumn, CircleCheckBig, GripVertical, Plus, Settings as SettingsIcon, type LucideIcon } from 'lucide-react'
+import { ChartColumn, CircleCheckBig, Plus, Settings as SettingsIcon, type LucideIcon } from 'lucide-react'
 import { useStore } from './store'
 import type { Habit } from './types'
 import { addDaysKey, todayKey } from './lib/dates'
 import { isActionable, isSatisfied } from './lib/schedule'
 import { initNotificationActions, syncReminders } from './lib/notify'
-import { successFeedback } from './lib/haptics'
+import { successFeedback, tapFeedback } from './lib/haptics'
 import HabitCard from './components/HabitCard'
 import HabitSheet from './components/HabitSheet'
 import HabitDetail from './components/HabitDetail'
@@ -51,7 +50,7 @@ export default function App() {
   const [tab, setTab] = useState<Tab>('habits')
   const [adding, setAdding] = useState(false)
   const [detailId, setDetailId] = useState<string | null>(null)
-  const [reordering, setReordering] = useState(false)
+  const [sorting, setSorting] = useState(false)
   const today = useToday()
   const [showYesterday, setShowYesterday] = useState(false)
   const day = showYesterday ? addDaysKey(today, -1) : today
@@ -66,12 +65,13 @@ export default function App() {
   const detailHabit = habits.find((h) => h.id === detailId) ?? null
   const celebrating = useCelebration(active, today)
 
+  // Press and hold to pick a habit up; quicker movements are taps, swipes or scrolling.
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 120, tolerance: 6 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+    useSensor(MouseSensor, { activationConstraint: { delay: 300, tolerance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 300, tolerance: 6 } }),
   )
   function onDragEnd({ active: a, over }: DragEndEvent) {
+    setSorting(false)
     if (!over || a.id === over.id) return
     const ids = active.map((h) => h.id)
     reorder(arrayMove(ids, ids.indexOf(String(a.id)), ids.indexOf(String(over.id))))
@@ -84,21 +84,8 @@ export default function App() {
           <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50">
             {TITLES[tab]}
           </h1>
-          {tab === 'habits' && (
-            <div className="flex items-center gap-2">
-              {active.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => setReordering((r) => !r)}
-                  className="rounded-full px-3 py-2 text-sm font-medium text-neutral-500 active:bg-black/5 dark:active:bg-white/10"
-                >
-                  {reordering ? 'Done' : 'Reorder'}
-                </button>
-              )}
-            </div>
-          )}
         </div>
-        {tab === 'habits' && active.length > 0 && !reordering && (
+        {tab === 'habits' && active.length > 0 && (
           <DaySummary
             habits={active}
             day={day}
@@ -112,32 +99,36 @@ export default function App() {
         {tab === 'habits' ? (
           active.length === 0 ? (
             <EmptyState onAdd={() => setAdding(true)} />
-          ) : reordering ? (
-            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+          ) : (
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              modifiers={[restrictToVerticalAxis, restrictToParentElement]}
+              onDragStart={() => {
+                tapFeedback()
+                setSorting(true)
+              }}
+              onDragEnd={onDragEnd}
+              onDragCancel={() => setSorting(false)}
+            >
               <SortableContext items={active.map((h) => h.id)} strategy={verticalListSortingStrategy}>
                 <div className="space-y-3 px-4 pt-2">
                   {active.map((h) => (
-                    <SortableCard key={h.id} habit={h} day={day} />
+                    <SortableHabit
+                      key={h.id}
+                      habit={h}
+                      day={day}
+                      sorting={sorting}
+                      onOpen={() => setDetailId(h.id)}
+                      onDelete={() => {
+                        deleteHabit(h.id)
+                        showToast(`Deleted “${h.name}”`, { label: 'Undo', run: () => restoreHabit(h) })
+                      }}
+                    />
                   ))}
-                  <p className="pt-2 text-center text-xs text-neutral-400">Drag the handles to reorder.</p>
                 </div>
               </SortableContext>
             </DndContext>
-          ) : (
-            <div className="space-y-3 px-4 pt-2">
-              {active.map((h) => (
-                <SwipeToDelete
-                  key={h.id}
-                  label={h.name}
-                  onDelete={() => {
-                    deleteHabit(h.id)
-                    showToast(`Deleted “${h.name}”`, { label: 'Undo', run: () => restoreHabit(h) })
-                  }}
-                >
-                  <HabitCard habit={h} day={day} onOpen={() => setDetailId(h.id)} />
-                </SwipeToDelete>
-              ))}
-            </div>
           )
         ) : tab === 'analytics' ? (
           <Analytics />
@@ -156,7 +147,6 @@ export default function App() {
             active={tab === 'analytics'}
             onClick={() => {
               setTab('analytics')
-              setReordering(false)
             }}
             label="Analytics"
             icon={ChartColumn}
@@ -165,7 +155,6 @@ export default function App() {
             type="button"
             onClick={() => {
               setTab('habits')
-              setReordering(false)
               setAdding(true)
             }}
             aria-label="Add habit"
@@ -177,7 +166,6 @@ export default function App() {
             active={tab === 'settings'}
             onClick={() => {
               setTab('settings')
-              setReordering(false)
             }}
             label="Settings"
             icon={SettingsIcon}
@@ -252,35 +240,52 @@ function DaySummary({
   )
 }
 
-function SortableCard({ habit, day }: { habit: Habit; day: string }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: habit.id })
+/** A habit card you can press and hold to drag, or swipe left to delete. */
+function SortableHabit({
+  habit,
+  day,
+  sorting,
+  onOpen,
+  onDelete,
+}: {
+  habit: Habit
+  day: string
+  sorting: boolean
+  onOpen: () => void
+  onDelete: () => void
+}) {
+  const { listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: habit.id })
+  // Releasing a dragged card also fires a click; don't let it open the habit.
+  const justDropped = useRef(false)
+  useEffect(() => {
+    if (isDragging) justDropped.current = true
+    else if (justDropped.current) {
+      const t = setTimeout(() => (justDropped.current = false), 300)
+      return () => clearTimeout(t)
+    }
+  }, [isDragging])
   return (
     <div
       ref={setNodeRef}
+      {...listeners}
+      onClickCapture={(e) => {
+        if (justDropped.current) {
+          e.stopPropagation()
+          e.preventDefault()
+        }
+      }}
+      className="relative select-none [-webkit-touch-callout:none]"
       style={{
-        transform: CSS.Transform.toString(transform),
+        transform: CSS.Translate.toString(transform),
         transition,
         zIndex: isDragging ? 10 : undefined,
-        position: 'relative',
       }}
-      className={isDragging ? 'scale-[1.02] opacity-90 shadow-xl' : ''}
     >
-      <HabitCard
-        habit={habit}
-        day={day}
-        onOpen={() => {}}
-        dragHandle={
-          <button
-            type="button"
-            aria-label={`Drag to reorder ${habit.name}`}
-            className="flex h-10 w-10 touch-none items-center justify-center rounded-xl text-neutral-400 active:bg-black/5 dark:active:bg-white/10"
-            {...attributes}
-            {...listeners}
-          >
-            <GripVertical className="h-5 w-5" />
-          </button>
-        }
-      />
+      <div className={`transition-transform duration-200 ${isDragging ? 'scale-[1.03] rounded-2xl shadow-2xl' : ''}`}>
+        <SwipeToDelete label={habit.name} onDelete={onDelete} disabled={sorting}>
+          <HabitCard habit={habit} day={day} onOpen={onOpen} />
+        </SwipeToDelete>
+      </div>
     </div>
   )
 }
