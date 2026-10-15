@@ -32,6 +32,7 @@ export default function Settings() {
   const setTheme = useStore((s) => s.setTheme)
   const palette = useStore((s) => s.settings.palette)
   const setPalette = useStore((s) => s.setPalette)
+  const setOnboarded = useStore((s) => s.setOnboarded)
   const habits = useStore((s) => s.habits)
   const settings = useStore((s) => s.settings)
   const replaceAll = useStore((s) => s.replaceAll)
@@ -210,6 +211,13 @@ export default function Settings() {
             device — nothing is uploaded.
           </p>
           <InstallTip />
+          <button
+            type="button"
+            onClick={() => setOnboarded(false)}
+            className="mt-3 rounded-full bg-container-high px-4 py-2 text-sm font-semibold text-neutral-700 transition active:scale-95 dark:text-neutral-200"
+          >
+            Show the intro again
+          </button>
           <p className="mt-3 text-xs text-neutral-400">
             Open source under the MIT license ·{' '}
             <a href={REPO} target="_blank" rel="noreferrer" className="underline">

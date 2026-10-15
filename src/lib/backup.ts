@@ -66,5 +66,6 @@ export function parseBackup(text: string): Backup {
   const s = obj.settings as Partial<Settings> | undefined
   const theme = s?.theme === 'light' || s?.theme === 'dark' ? s.theme : 'system'
   const palette = PALETTES.includes(s?.palette as Palette) ? (s!.palette as Palette) : 'neutral'
-  return { habits, settings: { theme, palette } }
+  // Importing a backup means the person already knows the app.
+  return { habits, settings: { theme, palette, onboarded: true } }
 }

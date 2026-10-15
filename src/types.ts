@@ -48,4 +48,6 @@ export type Palette = 'neutral' | 'sage' | 'sky' | 'lavender'
 export interface Settings {
   theme: ThemePref
   palette: Palette
+  /** Whether the first-run intro has been shown. */
+  onboarded: boolean
 }

@@ -25,6 +25,7 @@ interface State {
   reorder: (ids: string[]) => void
   setTheme: (theme: Settings['theme']) => void
   setPalette: (palette: Settings['palette']) => void
+  setOnboarded: (onboarded: boolean) => void
   replaceAll: (habits: Habit[], settings: Settings) => void
 }
 
@@ -36,7 +37,7 @@ export const useStore = create<State>()(
   persist(
     (set) => ({
       habits: [],
-      settings: { theme: 'system', palette: 'sage' },
+      settings: { theme: 'system', palette: 'sage', onboarded: false },
 
       addHabit: (h) =>
         set((s) => ({
@@ -109,11 +110,14 @@ export const useStore = create<State>()(
       setPalette: (palette) =>
         set((s) => ({ settings: { ...s.settings, palette } })),
 
+      setOnboarded: (onboarded) =>
+        set((s) => ({ settings: { ...s.settings, onboarded } })),
+
       replaceAll: (habits, settings) => set({ habits, settings }),
     }),
     {
       name: 'habitly-v1',
-      version: 3,
+      version: 4,
       // v1: emoji icons became icon keys; schedules, reminders and completion times were added.
       // v2: measurable habits (goal, amounts). normalizeHabit upgrades any older version.
       migrate: (persisted, version) => {
@@ -122,7 +126,9 @@ export const useStore = create<State>()(
           state.habits = (state.habits ?? []).map((h, i) => normalizeHabit(h, i))
         }
         // v3: color palettes. Existing users keep the neutral look they had.
-        if (version < 3) state.settings = { theme: 'system', ...state.settings, palette: 'neutral' }
+        if (version < 3) state.settings = { theme: 'system', ...state.settings, palette: 'neutral' } as Settings
+        // v4: first-run intro. People already using the app don't need it.
+        if (version < 4) state.settings = { ...state.settings!, onboarded: true }
         return state as State
       },
     },

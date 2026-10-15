@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Capacitor } from '@capacitor/core'
 import { App as CapApp } from '@capacitor/app'
 import { StatusBar, Style } from '@capacitor/status-bar'
@@ -35,6 +35,8 @@ import Analytics from './components/Analytics'
 import Toast, { useToast } from './components/Toast'
 import SwipeToDelete from './components/SwipeToDelete'
 import Confetti, { CONFETTI_MS } from './components/Confetti'
+import LaunchAnimation from './components/LaunchAnimation'
+import Onboarding from './components/Onboarding'
 
 type Tab = 'habits' | 'analytics' | 'settings'
 
@@ -51,6 +53,16 @@ export default function App() {
 
   const [tab, setTab] = useState<Tab>('habits')
   const [adding, setAdding] = useState(false)
+  const onboarded = useStore((s) => s.settings.onboarded)
+  const setOnboarded = useStore((s) => s.setOnboarded)
+  // Opening animation, then the screen underneath rises in (cards one by one).
+  const [launching, setLaunching] = useState(true)
+  const [revealing, setRevealing] = useState(false)
+  const finishLaunch = useCallback(() => {
+    setLaunching(false)
+    setRevealing(true)
+    setTimeout(() => setRevealing(false), 1200)
+  }, [])
   const [detailId, setDetailId] = useState<string | null>(null)
   const [sorting, setSorting] = useState(false)
   const today = useToday()
@@ -81,7 +93,9 @@ export default function App() {
 
   return (
     <div className="mx-auto flex min-h-full max-w-md flex-col">
-      <header className="sticky top-0 z-20 bg-surface/90 px-5 pb-3 pt-safe backdrop-blur-xl">
+      <header
+        className={`sticky top-0 z-20 bg-surface/90 px-5 pb-3 pt-safe backdrop-blur-xl ${revealing ? 'animate-rise' : ''}`}
+      >
         <div className="flex items-center justify-between pt-3">
           <h1 className="text-[32px] font-extrabold tracking-tight text-neutral-900 dark:text-neutral-50">
             {TITLES[tab]}
@@ -95,7 +109,7 @@ export default function App() {
         )}
       </header>
 
-      <main className="flex-1 overflow-y-auto pb-32">
+      <main className={`flex-1 overflow-y-auto pb-32 ${revealing && tab !== 'habits' ? 'animate-rise' : ''}`}>
         {tab === 'habits' ? (
           active.length === 0 ? (
             <EmptyState onAdd={() => setAdding(true)} />
@@ -113,12 +127,13 @@ export default function App() {
             >
               <SortableContext items={active.map((h) => h.id)} strategy={verticalListSortingStrategy}>
                 <div className="space-y-3 px-4 pt-2">
-                  {active.map((h) => (
+                  {active.map((h, i) => (
                     <SortableHabit
                       key={h.id}
                       habit={h}
                       day={day}
                       sorting={sorting}
+                      revealDelay={revealing ? i * 70 : null}
                       onOpen={() => setDetailId(h.id)}
                       onDelete={() => {
                         deleteHabit(h.id)
@@ -174,6 +189,15 @@ export default function App() {
       </nav>
 
       {adding && <HabitEditor onClose={() => setAdding(false)} />}
+      {!launching && !onboarded && (
+        <Onboarding
+          onDone={(addHabit) => {
+            setOnboarded(true)
+            if (addHabit) setAdding(true)
+          }}
+        />
+      )}
+      {launching && <LaunchAnimation onDone={finishLaunch} />}
       {detailHabit && <HabitDetail habit={detailHabit} onClose={() => setDetailId(null)} />}
       {celebrating && <Confetti />}
       <Toast />
@@ -229,12 +253,15 @@ function SortableHabit({
   habit,
   day,
   sorting,
+  revealDelay,
   onOpen,
   onDelete,
 }: {
   habit: Habit
   day: string
   sorting: boolean
+  /** While the screen rises in after launch: this card's delay, in ms. */
+  revealDelay: number | null
   onOpen: () => void
   onDelete: () => void
 }) {
@@ -265,7 +292,12 @@ function SortableHabit({
         zIndex: isDragging ? 10 : undefined,
       }}
     >
-      <div className={`transition-transform duration-200 ${isDragging ? 'scale-[1.03] rounded-2xl shadow-2xl' : ''}`}>
+      <div
+        className={`transition-transform duration-200 ${isDragging ? 'scale-[1.03] rounded-2xl shadow-2xl' : ''} ${
+          revealDelay !== null ? 'animate-rise' : ''
+        }`}
+        style={revealDelay !== null ? { animationDelay: `${revealDelay}ms` } : undefined}
+      >
         <SwipeToDelete label={habit.name} onDelete={onDelete} disabled={sorting}>
           <HabitCard habit={habit} day={day} onOpen={onOpen} />
         </SwipeToDelete>
