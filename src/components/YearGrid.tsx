@@ -132,7 +132,7 @@ function Dot({
       disabled={!cell.inRange || !onToggle}
       onClick={() => onToggle?.(cell.key)}
       aria-label={cell.key}
-      className="aspect-square w-full rounded-[2px] transition-transform active:scale-90 disabled:cursor-default"
+      className="aspect-square w-full rounded-full transition-transform active:scale-90 disabled:cursor-default"
       style={{ background: bg }}
     />
   )

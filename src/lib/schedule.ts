@@ -106,38 +106,50 @@ export function bestStreak(h: HabitLike, today = todayKey()): number {
   return best
 }
 
+export interface Progress {
+  /** Check-ins that were expected. */
+  due: number
+  /** Expected check-ins that happened. */
+  done: number
+}
+
 /**
- * Share of scheduled days (or weekly goals) met over the last 365 days at most.
- * Today and the current week only count once they're done, so an unfinished
- * day doesn't drag the rate down.
+ * Scheduled vs completed check-ins between two days (inclusive), counting only
+ * days the habit existed. Today and the current week only count once they're
+ * done, so an unfinished day doesn't drag numbers down. Weekly goals count
+ * whole weeks starting on or after `from`'s week.
  */
-export function completionRate(h: HabitLike, today = todayKey()): number {
-  let start = startKey(h)
-  const yearAgo = addDaysKey(today, -364)
-  if (start < yearAgo) start = yearAgo
+export function progressBetween(h: HabitLike, from: string, to: string, today = todayKey()): Progress {
+  const start = startKey(h)
+  if (from < start) from = start
+  if (to > today) to = today
+  let due = 0
+  let done = 0
+  if (from > to) return { due, done }
 
   if (h.schedule.kind === 'weekly') {
     const target = h.schedule.times
-    let met = 0
-    let total = 0
-    for (let w = weekStartKey(start); w <= today; w = addDaysKey(w, 7)) {
-      const done = Math.min(target, doneInWeek(h.completions, w))
-      const current = w === weekStartKey(today)
-      if (current && done < target) continue
-      met += done
-      total += target
+    for (let w = weekStartKey(from); w <= to; w = addDaysKey(w, 7)) {
+      const n = Math.min(target, doneInWeek(h.completions, w))
+      if (w === weekStartKey(today) && n < target) continue
+      due += target
+      done += n
     }
-    return total ? Math.round((met / total) * 100) : 0
+    return { due, done }
   }
 
-  let due = 0
-  let done = 0
-  for (let k = start; k <= today; k = addDaysKey(k, 1)) {
+  for (let k = from; k <= to; k = addDaysKey(k, 1)) {
     if (!isDue(h.schedule, k)) continue
     if (h.completions[k]) done++
     else if (k === today) continue
     due++
   }
+  return { due, done }
+}
+
+/** Share of scheduled days (or weekly goals) met, over the last `days` days. */
+export function completionRate(h: HabitLike, today = todayKey(), days = 365): number {
+  const { due, done } = progressBetween(h, addDaysKey(today, -(days - 1)), today, today)
   return due ? Math.round((done / due) * 100) : 0
 }
 
